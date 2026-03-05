@@ -1,685 +1,805 @@
-import React, { useState } from 'react';
-import { 
-  Github, 
-  Linkedin, 
-  Mail, 
-  Twitter, 
-  Send, 
-  MapPin, 
-  Phone, 
+import { useState } from "react";
+import {
+  Github,
+  Linkedin,
+  Mail,
+  Twitter,
+  Send,
+  MapPin,
+  Phone,
   Heart,
   ArrowUp,
   Code2,
-  Sparkles,
-  ExternalLink
-} from 'lucide-react';
+  ShoppingBag,
+} from "lucide-react";
 
-const PortfolioFooter = () => {
-  const [email, setEmail] = useState('');
-  const [showScrollTop, setShowScrollTop] = useState(true);
+const footerLinks = {
+  navigation: [
+    { label: "Features", href: "#features" },
+    { label: "Modules", href: "#modules" },
+    { label: "Pricing", href: "#pricing" },
+    { label: "Integrations", href: "#integrations" },
+    { label: "Contact", href: "#contact" },
+  ],
+  system: [
+    { label: "Sales Module", href: "#sales" },
+    { label: "Inventory", href: "#inventory" },
+    { label: "Reports", href: "#reports" },
+    { label: "Authentication", href: "#auth" },
+    { label: "Admin Panel", href: "#admin" },
+  ],
+  resources: [
+    { label: "Documentation", href: "#docs" },
+    { label: "Case Studies", href: "#cases" },
+    { label: "Open Source", href: "#opensource" },
+    { label: "Changelog", href: "#changelog" },
+    { label: "Support", href: "#support" },
+  ],
+};
 
-  const handleNewsletterSubmit = (e) => {
+const socialLinks = [
+  { icon: Github,   href: "https://github.com/yasirunadeeshaa",                         label: "GitHub"   },
+  { icon: Linkedin, href: "https://www.linkedin.com/in/yasiru-nadeesha-aththanayaka/",  label: "LinkedIn" },
+  { icon: Twitter,  href: "https://twitter.com",                                         label: "Twitter"  },
+  { icon: Mail,     href: "mailto:yasiru@example.com",                                   label: "Email"    },
+];
+
+const stats = [
+  { value: "10K+", label: "Daily transactions" },
+  { value: "99.9%", label: "Uptime SLA" },
+  { value: "50+", label: "Integrations" },
+  { value: "0.3s", label: "Checkout speed" },
+];
+
+export default function POSFooter() {
+  const [email, setEmail] = useState("");
+  const [submitted, setSubmitted] = useState(false);
+
+  const handleSubmit = (e) => {
     e.preventDefault();
-    console.log('Newsletter signup:', email);
-    setEmail('');
+    setSubmitted(true);
+    setEmail("");
+    setTimeout(() => setSubmitted(false), 3000);
   };
 
-  const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  const currentYear = new Date().getFullYear();
-
-  const footerLinks = {
-    navigation: [
-      { label: 'About', href: '#about' },
-      { label: 'Projects', href: '#projects' },
-      { label: 'Skills', href: '#skills' },
-      { label: 'Experience', href: '#experience' },
-      { label: 'Contact', href: '#contact' }
-    ],
-    services: [
-      { label: 'Web Development', href: '#web-dev' },
-      { label: 'Mobile Apps', href: '#mobile' },
-      { label: 'UI/UX Design', href: '#design' },
-      { label: 'Consulting', href: '#consulting' },
-      { label: 'Code Review', href: '#review' }
-    ],
-    resources: [
-      { label: 'Blog', href: '#blog' },
-      { label: 'Case Studies', href: '#cases' },
-      { label: 'Open Source', href: '#opensource' },
-      { label: 'Documentation', href: '#docs' },
-      { label: 'Tutorials', href: '#tutorials' }
-    ]
-  };
-
-  const socialLinks = [
-    { icon: Github, href: 'https://github.com/yasirunadeeshaa', label: 'GitHub', color: '#333' },
-    { icon: Linkedin, href: 'https://www.linkedin.com/in/yasiru-nadeesha-aththanayaka/', label: 'LinkedIn', color: '#0077b5' },
-    { icon: Twitter, href: 'https://twitter.com', label: 'Twitter', color: '#1da1f2' },
-    { icon: Mail, href: 'mailto:your.email@example.com', label: 'Email', color: '#ea4335' }
-  ];
+  const scrollToTop = () => window.scrollTo({ top: 0, behavior: "smooth" });
 
   return (
-    <footer className="pf-footer">
-      {/* Decorative Top Border */}
-      <div className="pf-top-border">
-        <div className="pf-border-gradient"></div>
-      </div>
+    <>
+      <footer className="ft-footer">
+        {/* Background orbs — same as hero */}
+        <div className="ft-orb ft-orb-a" />
+        <div className="ft-orb ft-orb-b" />
+        <div className="ft-orb ft-orb-c" />
 
-      {/* Main Footer Content */}
-      <div className="pf-footer-container">
-        {/* CTA Section */}
-        <div className="pf-cta-section">
-          <div className="pf-cta-content">
-            <h2 className="pf-cta-title">
-              Have a project in mind?
-              <br />
-              <span className="pf-cta-gradient">Let's create something amazing!</span>
-            </h2>
-            <p className="pf-cta-description">
-              I'm always open to discussing new projects, creative ideas, or opportunities to be part of your vision.
-            </p>
+        {/* Subtle grid */}
+        <div className="ft-grid-bg" />
+
+        {/* ── Animated top border ── */}
+        <div className="ft-top-border">
+          <div className="ft-border-glow" />
+        </div>
+
+        {/* ── CTA Banner ── */}
+        <div className="ft-cta-wrap">
+          <div className="ft-cta-inner">
+            <div className="ft-cta-left">
+              <div className="ft-badge-row">
+                <span className="badge badge-primary">
+                  <span className="badge-dot pulse" />
+                  Ready to get started?
+                </span>
+                <span className="badge badge-green">⚡ Free Demo</span>
+              </div>
+              <h2 className="ft-cta-headline">
+                Take your business to the{" "}
+                <span className="gradient-text">next level</span>
+              </h2>
+              <p className="ft-cta-sub">
+                Join hundreds of businesses already using our POS system to streamline operations and boost revenue.
+              </p>
+            </div>
+            <div className="ft-cta-right">
+              {stats.map((s, i) => (
+                <div className="ft-stat" key={i}>
+                  <span className="ft-stat-val">{s.value}</span>
+                  <span className="ft-stat-label">{s.label}</span>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
 
-        {/* Footer Links Grid */}
-        <div className="pf-links-section">
-          {/* Brand Column */}
-          <div className="pf-footer-column pf-brand-column">
-            <div className="pf-brand">
-              <div className="pf-brand-logo">
-                <Code2 size={32} />
+        {/* ── Main Links Grid ── */}
+        <div className="ft-container">
+          <div className="ft-links-grid">
+
+            {/* Brand column */}
+            <div className="ft-col ft-brand-col">
+              <div className="ft-brand">
+                <div className="ft-brand-icon">
+                  <ShoppingBag size={22} color="#fff" strokeWidth={1.8} />
+                </div>
+                <span className="ft-brand-name">SwiftPOS</span>
               </div>
-              <h3 className="pf-brand-name">Yasiru Nadeesha</h3>
+              <p className="ft-brand-desc">
+                Cloud-native point-of-sale for modern retail, restaurants, and service businesses. Built for speed, scale, and simplicity.
+              </p>
+              <div className="ft-contact-list">
+                <div className="ft-contact-row">
+                  <MapPin size={14} color="#667eea" />
+                  <span>Baththaramulla, Sri Lanka</span>
+                </div>
+                <div className="ft-contact-row">
+                  <Phone size={14} color="#667eea" />
+                  <span>+94 74 176 7063</span>
+                </div>
+                <div className="ft-contact-row">
+                  <Mail size={14} color="#667eea" />
+                  <span>yasiru@example.com</span>
+                </div>
+              </div>
             </div>
-            <p className="pf-brand-tagline">
-              Crafting digital experiences with passion and precision. Turning ideas into reality, one line of code at a time.
-            </p>
-            <div className="pf-contact-info">
-              <div className="pf-contact-item">
-                <MapPin size={16} />
-                <span>Baththaramulla, Sri Lanka</span>
-              </div>
-              <div className="pf-contact-item">
-                <Phone size={16} />
-                <span>+94 74 176 7063</span>
-              </div>
-              <div className="pf-contact-item">
-                <Mail size={16} />
-                <span>yasiru@example.com</span>
-              </div>
+
+            {/* Navigation */}
+            <div className="ft-col">
+              <h4 className="ft-col-title">
+                <span className="ft-col-diamond">◈</span> Navigation
+              </h4>
+              <ul className="ft-link-list">
+                {footerLinks.navigation.map((l) => (
+                  <li key={l.label}>
+                    <a href={l.href} className="ft-link">{l.label}</a>
+                  </li>
+                ))}
+              </ul>
             </div>
-          </div>
 
-          {/* Navigation Column */}
-          <div className="pf-footer-column">
-            <h4 className="pf-column-title">Navigation</h4>
-            <ul className="pf-link-list">
-              {footerLinks.navigation.map((link) => (
-                <li key={link.label}>
-                  <a href={link.href} className="pf-footer-link">
-                    {link.label}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
+            {/* System */}
+            <div className="ft-col">
+              <h4 className="ft-col-title">
+                <span className="ft-col-diamond">◈</span> System
+              </h4>
+              <ul className="ft-link-list">
+                {footerLinks.system.map((l) => (
+                  <li key={l.label}>
+                    <a href={l.href} className="ft-link">{l.label}</a>
+                  </li>
+                ))}
+              </ul>
+            </div>
 
-          {/* Services Column */}
-          <div className="pf-footer-column">
-            <h4 className="pf-column-title">Services</h4>
-            <ul className="pf-link-list">
-              {footerLinks.services.map((link) => (
-                <li key={link.label}>
-                  <a href={link.href} className="pf-footer-link">
-                    {link.label}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
+            {/* Resources */}
+            <div className="ft-col">
+              <h4 className="ft-col-title">
+                <span className="ft-col-diamond">◈</span> Resources
+              </h4>
+              <ul className="ft-link-list">
+                {footerLinks.resources.map((l) => (
+                  <li key={l.label}>
+                    <a href={l.href} className="ft-link">{l.label}</a>
+                  </li>
+                ))}
+              </ul>
+            </div>
 
-          {/* Resources Column */}
-          <div className="pf-footer-column">
-            <h4 className="pf-column-title">Resources</h4>
-            <ul className="pf-link-list">
-              {footerLinks.resources.map((link) => (
-                <li key={link.label}>
-                  <a href={link.href} className="pf-footer-link">
-                    {link.label}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Newsletter Column */}
-          <div className="pf-footer-column pf-newsletter-column">
-            <h4 className="pf-column-title">Stay Updated</h4>
-            <p className="pf-newsletter-text">
-              Subscribe to get the latest updates on projects, articles, and tech insights.
-            </p>
-            <form onSubmit={handleNewsletterSubmit} className="pf-newsletter-form">
-              <div className="pf-input-group">
-                <Mail size={18} className="pf-input-icon" />
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Enter your email"
-                  className="pf-newsletter-input"
-                  required
-                />
-              </div>
-              <button type="submit" className="pf-newsletter-btn">
-                <Send size={18} />
-              </button>
-            </form>
-            <div className="pf-social-links">
-              {socialLinks.map((social) => (
-                <a
-                  key={social.label}
-                  href={social.href}
-                  className="pf-social-link"
-                  aria-label={social.label}
-                  title={social.label}
+            {/* Newsletter + Social */}
+            <div className="ft-col ft-newsletter-col">
+              <h4 className="ft-col-title">
+                <span className="ft-col-diamond">◈</span> Stay Updated
+              </h4>
+              <p className="ft-newsletter-desc">
+                Get the latest updates on features, releases, and business tips.
+              </p>
+              <div className="ft-newsletter-wrap">
+                <div className="ft-input-wrap">
+                  <Mail size={15} className="ft-input-icon" />
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="Enter your email"
+                    className="ft-input"
+                  />
+                </div>
+                <button
+                  onClick={handleSubmit}
+                  className={`ft-send-btn ${submitted ? "sent" : ""}`}
                 >
-                  <social.icon size={20} />
-                </a>
-              ))}
+                  {submitted ? "✓" : <Send size={16} />}
+                </button>
+              </div>
+              {submitted && (
+                <p className="ft-success">Thanks! You're subscribed ✦</p>
+              )}
+
+              {/* Social icons */}
+              <div className="ft-socials">
+                {socialLinks.map((s) => (
+                  <a
+                    key={s.label}
+                    href={s.href}
+                    className="ft-social"
+                    title={s.label}
+                    aria-label={s.label}
+                  >
+                    <s.icon size={18} strokeWidth={1.8} />
+                  </a>
+                ))}
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Bottom Bar */}
-        <div className="pf-bottom-bar">
-          <div className="pf-bottom-content">
-            <p className="pf-copyright">
-              © {currentYear} Yasiru Nadeesha. Made with <Heart size={14} className="pf-heart" /> in Sri Lanka
+          {/* ── Bottom Bar ── */}
+          <div className="ft-bottom">
+            <p className="ft-copy">
+              © {new Date().getFullYear()} SwiftPOS · Yasiru Nadeesha. Made with{" "}
+              <Heart size={12} className="ft-heart" /> in Sri Lanka
             </p>
-            <div className="pf-bottom-links">
-              <a href="#privacy" className="pf-bottom-link">Privacy Policy</a>
-              <span className="pf-divider">•</span>
-              <a href="#terms" className="pf-bottom-link">Terms of Service</a>
-              <span className="pf-divider">•</span>
-              <a href="#cookies" className="pf-bottom-link">Cookie Policy</a>
+            <div className="ft-bottom-links">
+              <a href="#privacy" className="ft-bottom-link">Privacy Policy</a>
+              <span className="ft-dot">·</span>
+              <a href="#terms" className="ft-bottom-link">Terms of Service</a>
+              <span className="ft-dot">·</span>
+              <a href="#cookies" className="ft-bottom-link">Cookie Policy</a>
+            </div>
+            {/* Live ticker badge */}
+            <div className="ft-live-badge">
+              <span className="ft-live-dot" />
+              <span>System Live</span>
             </div>
           </div>
         </div>
-      </div>
+      </footer>
 
-      {/* Scroll to Top Button */}
-      {showScrollTop && (
-        <button 
-          className="pf-scroll-top"
-          onClick={scrollToTop}
-          aria-label="Scroll to top"
-        >
-          <ArrowUp size={20} />
-        </button>
-      )}
-
-      {/* Background Elements */}
-      <div className="pf-bg-gradient pf-gradient-1"></div>
-      <div className="pf-bg-gradient pf-gradient-2"></div>
+      {/* Scroll to top */}
+      <button className="ft-scroll-top" onClick={scrollToTop} aria-label="Scroll to top">
+        <ArrowUp size={18} />
+      </button>
 
       <style>{`
-        .pf-footer {
-          position: relative;
-          background: linear-gradient(135deg, #0a0a18 0%, #12121f 50%, #0f1419 100%);
-          color: white;
-          overflow: hidden;
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+          --bg-start:   #0f0f23;
+          --bg-mid:     #1a1a2e;
+          --bg-end:     #16213e;
+          --card-bg:    rgba(17, 24, 39, 0.85);
+          --border:     rgba(255,255,255,0.1);
+          --text:       #ffffff;
+          --text-2:     #cbd5e1;
+          --text-3:     #94a3b8;
+          --text-4:     #475569;
+          --accent:     #667eea;
+          --accent-2:   #764ba2;
+          --accent-3:   #f093fb;
+          --accent-lit: #a5b4fc;
+          --green:      #86efac;
+          --green-bg:   rgba(72, 187, 120, 0.2);
+          --green-bdr:  rgba(72, 187, 120, 0.3);
         }
 
-        /* Top Border */
-        .pf-top-border {
+        html, body, #root {
+          background: var(--bg-start);
+          color: var(--text);
+          font-family: 'Inter', system-ui, sans-serif;
+          -webkit-font-smoothing: antialiased;
+        }
+
+        /* ── FOOTER SHELL ── */
+        .ft-footer {
+          position: relative;
+          background: linear-gradient(180deg, var(--bg-end) 0%, var(--bg-mid) 40%, var(--bg-start) 100%);
+          overflow: hidden;
+          color: var(--text);
+        }
+
+        /* Orbs */
+        .ft-orb {
+          position: absolute;
+          border-radius: 50%;
+          pointer-events: none;
+          z-index: 0;
+        }
+        .ft-orb-a {
+          width: 700px; height: 700px;
+          background: radial-gradient(circle, rgba(102,126,234,0.1) 0%, transparent 70%);
+          top: -200px; right: -200px;
+        }
+        .ft-orb-b {
+          width: 500px; height: 500px;
+          background: radial-gradient(circle, rgba(118,75,162,0.1) 0%, transparent 70%);
+          bottom: 0; left: -150px;
+        }
+        .ft-orb-c {
+          width: 350px; height: 350px;
+          background: radial-gradient(circle, rgba(240,147,251,0.05) 0%, transparent 70%);
+          top: 40%; left: 45%;
+          transform: translate(-50%,-50%);
+        }
+
+        /* Grid bg */
+        .ft-grid-bg {
+          position: absolute;
+          inset: 0;
+          background-image:
+            linear-gradient(rgba(102,126,234,0.03) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(102,126,234,0.03) 1px, transparent 1px);
+          background-size: 50px 50px;
+          pointer-events: none;
+          z-index: 0;
+        }
+
+        /* Animated top border */
+        .ft-top-border {
           height: 1px;
-          background: rgba(255, 255, 255, 0.1);
+          background: var(--border);
           position: relative;
           overflow: hidden;
         }
-
-        .pf-border-gradient {
+        .ft-border-glow {
+          position: absolute;
+          top: 0; left: 0;
           height: 100%;
-          width: 40%;
-          background: linear-gradient(90deg, transparent, #667eea, #764ba2, transparent);
-          animation: pf-borderSlide 3s ease-in-out infinite;
+          width: 35%;
+          background: linear-gradient(90deg, transparent, var(--accent), var(--accent-2), transparent);
+          animation: borderSlide 4s ease-in-out infinite;
         }
-
-        @keyframes pf-borderSlide {
+        @keyframes borderSlide {
           0%, 100% { transform: translateX(-100%); }
-          50% { transform: translateX(250%); }
+          50%       { transform: translateX(320%); }
         }
 
-        .pf-footer-container {
+        /* ── CTA BANNER ── */
+        .ft-cta-wrap {
           position: relative;
-          z-index: 2;
-          margin: 0 auto;
-          padding: 0 30px;
+          z-index: 5;
+          padding: 64px 60px 0;
         }
-
-        /* CTA Section */
-        .pf-cta-section {
+        .ft-cta-inner {
+          background: rgba(17, 24, 39, 0.7);
+          border: 1px solid rgba(102,126,234,0.18);
+          border-radius: 24px;
+          padding: 44px 48px;
           display: flex;
-          justify-content: center;
           align-items: center;
-          padding: 20px 0 10px;
+          gap: 60px;
+          flex-wrap: wrap;
+          backdrop-filter: blur(20px);
+          box-shadow:
+            0 0 0 1px rgba(102,126,234,0.06),
+            0 30px 70px rgba(0,0,0,0.4),
+            0 0 60px rgba(102,126,234,0.05);
         }
-
-        .pf-cta-title {
-          font-size: 48px;
+        .ft-cta-left { flex: 1; min-width: 280px; }
+        .ft-cta-right {
+          display: flex;
+          gap: 40px;
+          flex-wrap: wrap;
+          flex-shrink: 0;
+        }
+        .ft-stat { display: flex; flex-direction: column; gap: 4px; }
+        .ft-stat-val {
+          font-size: 30px;
           font-weight: 900;
-          line-height: 1.2;
-          margin-bottom: 20px;
-          text-align: center;
+          background: linear-gradient(135deg, #667eea, #764ba2);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+          line-height: 1;
+        }
+        .ft-stat-label {
+          font-size: 11px;
+          color: var(--text-3);
+          text-transform: uppercase;
+          letter-spacing: 1px;
+          font-weight: 500;
         }
 
-        .pf-cta-gradient {
+        /* Badge row — identical to hero */
+        .ft-badge-row {
+          display: flex;
+          gap: 10px;
+          flex-wrap: wrap;
+          margin-bottom: 20px;
+        }
+        .badge {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          padding: 8px 16px;
+          border-radius: 50px;
+          font-size: 12px;
+          font-weight: 600;
+          backdrop-filter: blur(10px);
+        }
+        .badge-primary {
+          background: linear-gradient(135deg, rgba(102,126,234,0.2), rgba(118,75,162,0.2));
+          border: 1px solid rgba(102,126,234,0.35);
+          color: var(--accent-lit);
+        }
+        .badge-green {
+          background: var(--green-bg);
+          border: 1px solid var(--green-bdr);
+          color: var(--green);
+        }
+        .badge-dot {
+          width: 6px; height: 6px;
+          border-radius: 50%;
+          background: var(--accent-lit);
+        }
+        .badge-dot.pulse { animation: pulseDot 2s ease-in-out infinite; }
+        @keyframes pulseDot {
+          0%, 100% { opacity: 1; transform: scale(1); }
+          50%       { opacity: 0.5; transform: scale(1.4); }
+        }
+
+        .ft-cta-headline {
+          font-size: clamp(26px, 3vw, 38px);
+          font-weight: 900;
+          line-height: 1.15;
+          letter-spacing: -1px;
+          color: var(--text);
+          margin-bottom: 12px;
+        }
+        .gradient-text {
           background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
           background-clip: text;
+          background-size: 200% 200%;
+          animation: gradientShift 5s ease infinite;
+        }
+        @keyframes gradientShift {
+          0%, 100% { background-position: 0% 50%; }
+          50%       { background-position: 100% 50%; }
+        }
+        .ft-cta-sub {
+          font-size: 14px;
+          color: var(--text-2);
+          line-height: 1.75;
+          max-width: 420px;
         }
 
-        .pf-cta-description {
-          font-size: 18px;
-          color: #cbd5e1;
-          line-height: 1.8;
-          margin-bottom: 32px;
-          max-width: 600px;
-          margin-left: auto;
-          margin-right: auto;
-          text-align: center;
+        /* ── MAIN GRID ── */
+        .ft-container {
+          position: relative;
+          z-index: 5;
+          max-width: 1400px;
+          margin: 0 auto;
+          padding: 0 60px;
         }
-
-        /* Links Section */
-        .pf-links-section {
+        .ft-links-grid {
           display: grid;
-          grid-template-columns: 1.5fr 1fr 1fr 1fr 1.3fr;
-          gap: 60px;
-          padding: 80px 0 60px;
-          border-top: 1px solid rgba(255, 255, 255, 0.1);
+          grid-template-columns: 1.6fr 1fr 1fr 1fr 1.4fr;
+          gap: 56px;
+          padding: 72px 0 56px;
+          border-top: 1px solid var(--border);
+          margin-top: 56px;
         }
-
-        .pf-footer-column {
+        .ft-col {
           display: flex;
           flex-direction: column;
-          gap: 20px;
+          gap: 18px;
         }
 
-        /* Brand Column */
-        .pf-brand {
+        /* Brand */
+        .ft-brand {
           display: flex;
           align-items: center;
           gap: 12px;
-          margin-bottom: 8px;
+          margin-bottom: 4px;
         }
-
-        .pf-brand-logo {
-          width: 48px;
-          height: 48px;
-          background: linear-gradient(135deg, #667eea, #764ba2);
+        .ft-brand-icon {
+          width: 44px; height: 44px;
+          background: linear-gradient(135deg, var(--accent), var(--accent-2));
           border-radius: 12px;
           display: flex;
           align-items: center;
           justify-content: center;
-          color: white;
+          box-shadow: 0 8px 24px rgba(102,126,234,0.35);
+          flex-shrink: 0;
         }
-
-        .pf-brand-name {
-          font-size: 24px;
+        .ft-brand-name {
+          font-size: 22px;
           font-weight: 900;
-          color: white;
+          color: var(--text);
+          letter-spacing: -0.5px;
         }
-
-        .pf-brand-tagline {
-          font-size: 14px;
-          color: #94a3b8;
-          line-height: 1.7;
-          margin-bottom: 8px;
+        .ft-brand-desc {
+          font-size: 13.5px;
+          color: var(--text-3);
+          line-height: 1.75;
         }
-
-        .pf-contact-info {
+        .ft-contact-list {
           display: flex;
           flex-direction: column;
-          gap: 12px;
+          gap: 10px;
         }
-
-        .pf-contact-item {
+        .ft-contact-row {
           display: flex;
           align-items: center;
           gap: 10px;
-          font-size: 14px;
-          color: #cbd5e1;
+          font-size: 13px;
+          color: var(--text-2);
         }
 
-        .pf-contact-item svg {
-          color: #667eea;
-          flex-shrink: 0;
-        }
-
-        /* Column Titles */
-        .pf-column-title {
-          font-size: 16px;
+        /* Column titles */
+        .ft-col-title {
+          font-size: 11px;
           font-weight: 800;
-          color: white;
+          color: var(--text);
           text-transform: uppercase;
-          letter-spacing: 1px;
+          letter-spacing: 2px;
+          font-family: 'Courier New', monospace;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          margin-bottom: 4px;
         }
+        .ft-col-diamond { color: var(--accent-lit); font-size: 14px; }
 
-        /* Link Lists */
-        .pf-link-list {
+        /* Links */
+        .ft-link-list {
           list-style: none;
-          padding: 0;
-          margin: 0;
           display: flex;
           flex-direction: column;
-          gap: 12px;
+          gap: 10px;
         }
-
-        .pf-footer-link {
-          font-size: 15px;
-          color: #94a3b8;
+        .ft-link {
+          font-size: 14px;
+          color: var(--text-3);
           text-decoration: none;
-          transition: all 0.3s ease;
-          display: inline-block;
+          transition: color 0.25s, transform 0.25s;
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
           position: relative;
+          padding-left: 0;
         }
-
-        .pf-footer-link:hover {
-          color: #a5b4fc;
-          transform: translateX(5px);
-        }
-
-        .pf-footer-link::before {
-          content: '';
-          position: absolute;
-          left: -20px;
-          top: 50%;
-          transform: translateY(-50%);
-          width: 12px;
-          height: 2px;
-          background: #667eea;
+        .ft-link::before {
+          content: '→';
+          font-size: 11px;
+          color: var(--accent);
           opacity: 0;
-          transition: all 0.3s ease;
+          transform: translateX(-8px);
+          transition: opacity 0.25s, transform 0.25s;
         }
-
-        .pf-footer-link:hover::before {
+        .ft-link:hover {
+          color: var(--accent-lit);
+          transform: translateX(6px);
+        }
+        .ft-link:hover::before {
           opacity: 1;
-          left: -15px;
+          transform: translateX(-6px);
         }
 
         /* Newsletter */
-        .pf-newsletter-text {
-          font-size: 14px;
-          color: #94a3b8;
+        .ft-newsletter-col { gap: 16px; }
+        .ft-newsletter-desc {
+          font-size: 13px;
+          color: var(--text-3);
           line-height: 1.7;
         }
-
-        .pf-newsletter-form {
+        .ft-newsletter-wrap {
           display: flex;
           gap: 8px;
+          align-items: center;
         }
-
-        .pf-input-group {
-          position: relative;
+        .ft-input-wrap {
           flex: 1;
+          position: relative;
         }
-
-        .pf-input-icon {
+        .ft-input-icon {
           position: absolute;
-          left: 16px;
+          left: 14px;
           top: 50%;
           transform: translateY(-50%);
-          color: #64748b;
+          color: var(--text-4);
           pointer-events: none;
         }
-
-        .pf-newsletter-input {
+        .ft-input {
           width: 100%;
-          padding: 14px 16px 14px 48px;
-          background: rgba(255, 255, 255, 0.05);
-          border: 2px solid rgba(255, 255, 255, 0.1);
+          padding: 13px 14px 13px 42px;
+          background: rgba(255,255,255,0.05);
+          border: 1px solid var(--border);
           border-radius: 50px;
-          color: white;
-          font-size: 14px;
-          transition: all 0.3s ease;
+          color: var(--text);
+          font-size: 13px;
+          transition: border-color 0.25s, background 0.25s;
         }
-
-        .pf-newsletter-input::placeholder {
-          color: #64748b;
-        }
-
-        .pf-newsletter-input:focus {
+        .ft-input::placeholder { color: var(--text-4); }
+        .ft-input:focus {
           outline: none;
-          border-color: rgba(102, 126, 234, 0.5);
-          background: rgba(255, 255, 255, 0.08);
+          border-color: rgba(102,126,234,0.5);
+          background: rgba(102,126,234,0.06);
         }
-
-        .pf-newsletter-btn {
-          width: 50px;
-          height: 50px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          background: linear-gradient(135deg, #667eea, #764ba2);
+        .ft-send-btn {
+          width: 46px; height: 46px;
+          border-radius: 50%;
+          background: linear-gradient(135deg, var(--accent), var(--accent-2));
           border: none;
-          border-radius: 50%;
-          color: white;
+          color: #fff;
           cursor: pointer;
-          transition: all 0.3s ease;
-          flex-shrink: 0;
-        }
-
-        .pf-newsletter-btn:hover {
-          transform: scale(1.1);
-          box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
-        }
-
-        .pf-social-links {
-          display: flex;
-          gap: 12px;
-          margin-top: 8px;
-        }
-
-        .pf-social-link {
-          width: 44px;
-          height: 44px;
           display: flex;
           align-items: center;
           justify-content: center;
-          background: rgba(255, 255, 255, 0.05);
-          border: 2px solid rgba(255, 255, 255, 0.1);
-          border-radius: 50%;
-          color: white;
-          transition: all 0.3s ease;
+          font-weight: 700;
+          font-size: 15px;
+          flex-shrink: 0;
+          transition: transform 0.25s, box-shadow 0.25s;
+          box-shadow: 0 6px 20px rgba(102,126,234,0.4);
+        }
+        .ft-send-btn:hover {
+          transform: scale(1.12);
+          box-shadow: 0 10px 30px rgba(102,126,234,0.55);
+        }
+        .ft-send-btn.sent {
+          background: linear-gradient(135deg, #10b981, #059669);
+          box-shadow: 0 6px 20px rgba(16,185,129,0.4);
+        }
+        .ft-success {
+          font-size: 12px;
+          color: var(--green);
+          font-family: monospace;
+          animation: fadeIn 0.4s ease;
+        }
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(4px); }
+          to   { opacity: 1; transform: translateY(0); }
         }
 
-        .pf-social-link:hover {
-          background: rgba(102, 126, 234, 0.3);
-          border-color: rgba(102, 126, 234, 0.5);
-          transform: translateY(-3px);
-        }
-
-        /* Bottom Bar */
-        .pf-bottom-bar {
-          padding: 30px 0;
-          border-top: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .pf-bottom-content {
+        /* Socials */
+        .ft-socials {
           display: flex;
-          justify-content: space-between;
+          gap: 10px;
+          margin-top: 4px;
+        }
+        .ft-social {
+          width: 40px; height: 40px;
+          border-radius: 50%;
+          background: rgba(255,255,255,0.05);
+          border: 1px solid var(--border);
+          display: flex;
           align-items: center;
-          flex-wrap: wrap;
-          gap: 20px;
+          justify-content: center;
+          color: var(--text-3);
+          transition: all 0.25s;
+          text-decoration: none;
+        }
+        .ft-social:hover {
+          background: rgba(102,126,234,0.2);
+          border-color: rgba(102,126,234,0.45);
+          color: var(--accent-lit);
+          transform: translateY(-4px);
+          box-shadow: 0 8px 24px rgba(102,126,234,0.25);
         }
 
-        .pf-copyright {
-          font-size: 14px;
-          color: #94a3b8;
+        /* ── BOTTOM BAR ── */
+        .ft-bottom {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          flex-wrap: wrap;
+          gap: 16px;
+          padding: 28px 0 36px;
+          border-top: 1px solid var(--border);
+        }
+        .ft-copy {
+          font-size: 13px;
+          color: var(--text-3);
           display: flex;
           align-items: center;
           gap: 6px;
+          font-family: monospace;
         }
-
-        .pf-heart {
+        .ft-heart {
           color: #ef4444;
-          animation: pf-heartbeat 1.5s ease-in-out infinite;
+          animation: heartbeat 1.5s ease-in-out infinite;
         }
-
-        @keyframes pf-heartbeat {
+        @keyframes heartbeat {
           0%, 100% { transform: scale(1); }
-          25% { transform: scale(1.2); }
-          50% { transform: scale(1); }
+          25%       { transform: scale(1.3); }
+          50%       { transform: scale(1); }
         }
-
-        .pf-bottom-links {
+        .ft-bottom-links {
           display: flex;
           align-items: center;
-          gap: 16px;
+          gap: 14px;
           flex-wrap: wrap;
         }
-
-        .pf-bottom-link {
-          font-size: 14px;
-          color: #94a3b8;
+        .ft-bottom-link {
+          font-size: 13px;
+          color: var(--text-3);
           text-decoration: none;
-          transition: color 0.3s ease;
+          transition: color 0.25s;
+        }
+        .ft-bottom-link:hover { color: var(--accent-lit); }
+        .ft-dot { color: var(--text-4); }
+
+        /* Live badge */
+        .ft-live-badge {
+          display: flex;
+          align-items: center;
+          gap: 7px;
+          font-size: 10px;
+          font-family: monospace;
+          font-weight: 700;
+          text-transform: uppercase;
+          letter-spacing: 1px;
+          color: var(--green);
+          background: rgba(134,239,172,0.1);
+          border: 1px solid rgba(134,239,172,0.25);
+          padding: 6px 14px;
+          border-radius: 50px;
+        }
+        .ft-live-dot {
+          width: 6px; height: 6px;
+          border-radius: 50%;
+          background: var(--green);
+          animation: blink 1.2s ease-in-out infinite;
+        }
+        @keyframes blink {
+          0%, 100% { opacity: 1; }
+          50%       { opacity: 0.3; }
         }
 
-        .pf-bottom-link:hover {
-          color: #a5b4fc;
-        }
-
-        .pf-divider {
-          color: #475569;
-        }
-
-        /* Scroll to Top */
-        .pf-scroll-top {
+        /* Scroll to top */
+        .ft-scroll-top {
           position: fixed;
-          bottom: 40px;
-          right: 40px;
-          width: 56px;
-          height: 56px;
-          background: linear-gradient(135deg, #667eea, #764ba2);
+          bottom: 36px;
+          right: 36px;
+          width: 50px; height: 50px;
+          background: linear-gradient(135deg, var(--accent), var(--accent-2));
           border: none;
           border-radius: 50%;
-          color: white;
+          color: #fff;
           cursor: pointer;
           display: flex;
           align-items: center;
           justify-content: center;
-          box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
-          transition: all 0.3s ease;
+          box-shadow: 0 10px 32px rgba(102,126,234,0.45);
+          transition: transform 0.25s, box-shadow 0.25s;
           z-index: 1000;
         }
-
-        .pf-scroll-top:hover {
+        .ft-scroll-top:hover {
           transform: translateY(-5px);
-          box-shadow: 0 15px 40px rgba(102, 126, 234, 0.5);
+          box-shadow: 0 16px 44px rgba(102,126,234,0.6);
         }
 
-        /* Background Gradients */
-        .pf-bg-gradient {
-          position: absolute;
-          border-radius: 50%;
-          filter: blur(100px);
-          opacity: 0.2;
-          pointer-events: none;
-        }
-
-        .pf-gradient-1 {
-          width: 600px;
-          height: 600px;
-          background: radial-gradient(circle, rgba(102, 126, 234, 0.3), transparent);
-          top: 0;
-          right: 0;
-        }
-
-        .pf-gradient-2 {
-          width: 500px;
-          height: 500px;
-          background: radial-gradient(circle, rgba(118, 75, 162, 0.2), transparent);
-          bottom: 0;
-          left: 0;
-        }
-
-        /* Responsive */
+        /* ── RESPONSIVE ── */
         @media (max-width: 1200px) {
-          .pf-cta-section {
-            grid-template-columns: 1fr;
-            gap: 60px;
-          }
-
-          .pf-cta-visual {
-            height: 300px;
-          }
-
-          .pf-links-section {
+          .ft-links-grid {
             grid-template-columns: repeat(3, 1fr);
-            gap: 40px;
+            gap: 36px;
           }
-
-          .pf-brand-column {
-            grid-column: span 3;
-          }
+          .ft-brand-col { grid-column: span 3; }
+          .ft-cta-inner { gap: 40px; }
         }
-
         @media (max-width: 768px) {
-          .pf-footer-container {
-            padding: 0 30px;
+          .ft-cta-wrap { padding: 40px 24px 0; }
+          .ft-container { padding: 0 24px; }
+          .ft-links-grid {
+            grid-template-columns: 1fr 1fr;
+            gap: 32px;
+            margin-top: 40px;
+            padding-top: 40px;
           }
-
-          .pf-cta-section {
-            padding: 60px 0 40px;
-          }
-
-          .pf-cta-title {
-            font-size: 36px;
-          }
-
-          .pf-btn-primary, .pf-btn-secondary {
-            width: 100%;
-            justify-content: center;
-          }
-
-          .pf-links-section {
-            grid-template-columns: 1fr;
-            gap: 40px;
-            padding: 60px 0 40px;
-          }
-
-          .pf-brand-column {
-            grid-column: span 1;
-          }
-
-          .pf-bottom-content {
+          .ft-brand-col { grid-column: span 2; }
+          .ft-cta-right { gap: 24px; }
+          .ft-bottom {
             flex-direction: column;
-            text-align: center;
+            align-items: flex-start;
+            gap: 12px;
           }
-
-          .pf-bottom-links {
-            justify-content: center;
-          }
-
-          .pf-scroll-top {
-            bottom: 20px;
-            right: 20px;
-            width: 48px;
-            height: 48px;
-          }
-
-          .pf-cta-visual {
-            display: none;
-          }
+          .ft-scroll-top { bottom: 20px; right: 20px; width: 44px; height: 44px; }
+        }
+        @media (max-width: 480px) {
+          .ft-links-grid { grid-template-columns: 1fr; }
+          .ft-brand-col { grid-column: span 1; }
+          .ft-cta-headline { font-size: 24px; }
         }
       `}</style>
-    </footer>
+    </>
   );
-};
-
-export default PortfolioFooter;
+}
