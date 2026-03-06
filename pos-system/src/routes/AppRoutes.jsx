@@ -3,8 +3,11 @@ import { Routes, Route, Navigate } from 'react-router-dom'
 import HeroSection from '../pages/main/Herosection'
 import FeatureSection from '../pages/main/Feature'
 import Navigation from '../components/Navigation'
+import ModuleSection from '../pages/main/ModuleSection'
+import HowItWorks from '../pages/main/HowItWorks'
 import Footer from '../components/Footer'
 import NotFound from '../pages/Notfound'
+import ComparisonSection from '../pages/main/Comparisonsection'
 
 // Simple auth guard — replace with your real auth logic later
 const PrivateRoute = ({ children }) => {
@@ -35,22 +38,22 @@ const AppRoutes = () => {
           {/* Main Portfolio Page */}
           <Route path="/" element={
             <>
-              <section id="">
+              <section id="home">
                 <HeroSection />
               </section>
               <section id="features">
                 <FeatureSection />
               </section>
-              {/*<section id="projects">
-                <MyProject />
+              <section id="modules">
+                <ModuleSection />
               </section>
-              <section id="skills">
-                <Skill />
+              <section id="how-it-works">
+                <HowItWorks />
               </section>
-              <section id="testimonials">
-                <PortfolioTestimonials />
+              <section id="comparison">
+                <ComparisonSection />
               </section>
-              <section id="contact">
+              {/*<section id="contact">
                 <Contact />
               </section> */}
               
