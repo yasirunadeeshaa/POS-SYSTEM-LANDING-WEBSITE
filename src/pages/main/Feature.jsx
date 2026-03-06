@@ -9,6 +9,7 @@ const features = [
         <path d="M2 10h20" />
         <path d="M6 15h4" />
       </svg>
+      
     ),
     tag: "Checkout",
     title: "Lightning-fast payments",
