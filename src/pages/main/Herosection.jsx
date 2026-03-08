@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 
 const metrics = [
   { value: "10K+", label: "Transactions daily", icon: "↗" },
@@ -25,6 +26,7 @@ export default function HeroSection() {
   const [amount, setAmount] = useState(0);
   const canvasRef = useRef(null);
   const heroRef = useRef(null);
+  const navigate = useNavigate();
 
   // Particle canvas — same as PortfolioHero
   useEffect(() => {
@@ -177,7 +179,7 @@ export default function HeroSection() {
             </div>
 
             <div className="actions">
-              <button className="btn-p">
+              <button className="btn-p" onClick={() => navigate("/admin/dashboard")}>
                 Explore Features
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
                   <path d="M5 12h14M12 5l7 7-7 7" />
