@@ -8,9 +8,15 @@ import HowItWorks from "../pages/main/HowItWorks";
 import Footer from "../components/Footer";
 import NotFound from "../pages/Notfound";
 import Analysis from "../pages/Analysis";
-import Invoice from "../pages/Invoice";
-import InvoiceHistory from "../pages/InvoiceHistory";
+import Invoice from "../pages/sales/Invoice";
+import invoicePayment from "../pages/sales/InvoicePayment";
+import invoiceSummaryModal from "../pages/sales/InvoiceSummaryModal";
+import AddProduct from "../pages/product/Addproduct";
+import InvoiceHistory from "../pages/sales/InvoiceHistory";
 import ComparisonSection from "../pages/main/Comparisonsection";
+import ProductListView from "../pages/product/ProductListView";
+import CategoryManagement from "../pages/CaregoryManagement";
+import CustomerManagement from "../pages/customers/CustomerManagement";
 
 import AdminDashboard from "../pages/dashboards/AdminDashboard";
 
@@ -52,7 +58,12 @@ const AppRoutes = () => {
       <Route path="/analysis" element={<Analysis />}/>
       <Route path="/invoice" element={<Invoice />} />
       <Route path="/invoice-history" element={<InvoiceHistory />} />
-
+      <Route path="/invoicepayment" element={<invoicePayment />} />
+      <Route path="/invoicesummary" element={<invoiceSummaryModal />} />
+      <Route path="/addproduct" element={<AddProduct />} />
+      <Route path="/productsListView" element={<ProductListView />} />
+      <Route path="/categoryManagement" element={<CategoryManagement />} />
+      <Route path="/customerManagement" element={<CustomerManagement />} />
       {/* 404 */}
       <Route path="*" element={<NotFound />} />
 
