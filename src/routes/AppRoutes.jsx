@@ -9,8 +9,6 @@ import Footer from "../components/Footer";
 import NotFound from "../pages/Notfound";
 import Analysis from "../pages/Analysis";
 import Invoice from "../pages/sales/Invoice";
-import invoicePayment from "../pages/sales/InvoicePayment";
-import invoiceSummaryModal from "../pages/sales/InvoiceSummaryModal";
 import AddProduct from "../pages/product/Addproduct";
 import InvoiceHistory from "../pages/sales/InvoiceHistory";
 import ComparisonSection from "../pages/main/Comparisonsection";
@@ -18,7 +16,12 @@ import ProductListView from "../pages/product/ProductListView";
 import CategoryManagement from "../pages/CaregoryManagement";
 import CustomerManagement from "../pages/customers/CustomerManagement";
 
+import SupplierManagement from "../pages/suppliers/SupplierManagement";
+import SupplierAccount from "../pages/suppliers/SupplierAccount";
+
 import AdminDashboard from "../pages/dashboards/AdminDashboard";
+
+import Demo from "../pages/Demo";
 
 const AppRoutes = () => {
   return (
@@ -64,6 +67,9 @@ const AppRoutes = () => {
       <Route path="/productsListView" element={<ProductListView />} />
       <Route path="/categoryManagement" element={<CategoryManagement />} />
       <Route path="/customerManagement" element={<CustomerManagement />} />
+      <Route path="/supplierManagement" element={<SupplierManagement />} />
+      <Route path="/supplierAccount" element={<SupplierAccount />} />
+      <Route path="/demo" element={<Demo />} />
       {/* 404 */}
       <Route path="*" element={<NotFound />} />
 
