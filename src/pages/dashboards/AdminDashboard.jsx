@@ -772,14 +772,17 @@ const quickActionCategories = [
   {
     key: "sales", label: "Sales", icon: "↗", color: "#2D6A4F",
     actions: [
-      { icon: "↗", label: "New Sale",       color: "#2D6A4F", desc: "Open transaction",  routeTo: "/pos"     },
+      { icon: "↗", label: "New Sale",       color: "#2D6A4F", desc: "Open transaction",  routeTo: "/demo"     },
       { icon: "◷", label: "Hold Sale",      color: "#B8902A", desc: "Park transaction"                      },
-      { icon: "⊗", label: "Void Sale",      color: "#B5372A", desc: "Cancel transaction"                    },
       { icon: "⟲", label: "Refund",         color: "#7A5C1E", desc: "Refund / exchange"                     },
       { icon: "✦", label: "Discount",       color: "#2D6A4F", desc: "Apply promo"                           },
       { icon: "▦", label: "Price Override", color: "#B8902A", desc: "Manual edit"                           },
       { icon: "✉", label: "Send Receipt",   color: "#2B5490", desc: "Email / SMS"                           },
+      { icon: "✉", label: "Credit Note",        color: "#5B3D8F", desc: "New credit note",       routeTo: "/credit-note" },
+      { icon: "✉", label: "Debit Note",        color: "#5B3D8F", desc: "New debit note",       routeTo: "/debit-note" },
+      { icon: "✉", label: "Quotation",        color: "#5B3D8F", desc: "New quotation",       routeTo: "/quotation" },
       { icon: "✉", label: "Invoice",        color: "#5B3D8F", desc: "New invoice",       routeTo: "/invoice" },
+      { icon: "✉", label: "GRN",        color: "#5B3D8F", desc: "New goods receipt",       routeTo: "/goods-receipt" },
     ],
   },
   {
@@ -790,9 +793,9 @@ const quickActionCategories = [
       { icon: "🏷",  label: "Categories",      color: "#2D6A4F", desc: "Category Management",   routeTo: "/categoryManagement"  },
       { icon: "◈",  label: "Receive Stock",   color: "#5B3D8F", desc: "Add incoming stock"                           },
       { icon: "⇄",  label: "Transfer Stock",  color: "#7A5C1E", desc: "Move between stores"                         },
-      { icon: "☑",  label: "Stock Count",     color: "#2B5490", desc: "Manual stocktake"                            },
+      { icon: "☑",  label: "Current Stock",     color: "#2B5490", desc: "Manual stocktake"                            },
       { icon: "⚠",  label: "Low Stock",       color: "#B5372A", desc: "Low inventory alert", routeTo: "/low-stock"   },
-      { icon: "📑",  label: "Stock History",  color: "#9E9080", desc: "Inventory movement"                          },
+      { icon: "📑", label: "Purchase Orders", color: "#818cf8", desc: "Create purchase orders" },
     ],
   },
   {
@@ -801,7 +804,15 @@ const quickActionCategories = [
       { icon: "⌂",  label: "Customer Management",       color: "#5B3D8F", desc: "CRM lookup",          routeTo: "/customerManagement"     },
       { icon: "➕", label: "Add Customer",    color: "#2D6A4F", desc: "Create new customer", routeTo: "/add-customer"  },
       { icon: "⭐", label: "Loyalty",         color: "#B8902A", desc: "Customer rewards"                               },
-      { icon: "📜", label: "Purchase History",color: "#2B5490", desc: "Customer orders"                                },
+      
+    ],
+  },
+  {
+    key: "suppliers",label: "Suppliers",icon: "🏭",color: "#c084fc",
+    actions: [
+      { icon: "🏭", label: "Suppliers", color: "#c084fc", desc: "Manage suppliers", routeTo: "/supplierManagement" },
+      { icon: "➕", label: "Add Supplier", color: "#a78bfa", desc: "New supplier" , routeTo: "/supplierAccount" },
+      
     ],
   },
   {
@@ -811,6 +822,20 @@ const quickActionCategories = [
       { icon: "⊟",  label: "Close Register",  color: "#9E9080", desc: "Cash up"       },
       { icon: "💵", label: "Cash Management", color: "#2D6A4F", desc: "Cash in / out" },
       { icon: "⊜",  label: "End of Day",      color: "#5B3D8F", desc: "Run EOD report"},
+    ],
+  },
+  {
+    key: "History",label: "History",icon: "📅",color: "#218dbe",
+    actions: [
+      { icon: "🧾", label: "Sales History", color: "#60a5fa", desc: "View past sales", action: () => navigate("/sales-history") },
+      { icon: "📄", label: "Invoice History", color: "#38bdf8", desc: "View invoice records", routeTo:"/invoice-history" },
+      { icon: "📦", label: "Receive Stock History", color: "#a5b4fc", desc: "Incoming stock records", action: () => navigate("/receive-stock-history") },
+      { icon: "⇄", label: "Transfer Stock History", color: "#c084fc", desc: "Stock transfer records", action: () => navigate("/transfer-history") },
+      { icon: "↩", label: "Refund History", color: "#f093fb", desc: "Refund transactions", action: () => navigate("/refund-history") },
+      { icon: "⊗", label: "Void Sale History", color: "#f87171", desc: "Cancelled sales log", action: () => navigate("/void-history") },
+      { icon: "☑", label: "Stock Count History", color: "#22d3ee", desc: "Stocktake records", action: () => navigate("/stock-count-history") },
+      { icon: "💰", label: "Register History", color: "#94a3b8", desc: "Cash register activity", action: () => navigate("/register-history") },
+      { icon: "📜", label: "Purchase History",color: "#2B5490", desc: "Customer orders"                                },
     ],
   },
   {
