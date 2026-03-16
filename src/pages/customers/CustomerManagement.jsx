@@ -1,4 +1,5 @@
 import { useState, useMemo, useRef, useEffect } from "react";
+import AddCustomer from "./AddCustomer";
 
 // ── DATA ──────────────────────────────────────────────────────────────────────
 const INITIAL_CUSTOMERS = [
@@ -1124,15 +1125,7 @@ export default function CustomerManagement() {
                       <div className="d-row"><span className="d-label">Phone</span><span className="d-value d-mono">{c.phone}</span></div>
                       <div className="d-row"><span className="d-label">Email</span><span className="d-value" style={{ fontSize:12 }}>{c.email||"—"}</span></div>
                       <div className="d-row"><span className="d-label">NIC / ID</span><span className="d-value d-mono">{c.nic||"—"}</span></div>
-                      <div className="d-row"><span className="d-label">Date of Birth</span><span className="d-value d-mono">{c.dob||"—"}</span></div>
-                      <div className="d-row"><span className="d-label">Gender</span><span className="d-value">{c.gender||"—"}</span></div>
-                    </div>
-
-                    {/* Address */}
-                    <div>
-                      <div className="d-section">Address</div>
-                      <div className="d-row"><span className="d-label">Street</span><span className="d-value">{c.address||"—"}</span></div>
-                      <div className="d-row"><span className="d-label">City</span><span className="d-value">{c.city||"—"}</span></div>
+                      <div className="d-row"><span className="d-label">Address</span><span className="d-value">{c.address||"—"}</span></div>
                     </div>
 
                     {/* Account */}
@@ -1163,163 +1156,6 @@ export default function CustomerManagement() {
             );
           })()}
         </div>
-
-        {/* ══ ADD / EDIT MODAL ══ */}
-        {modalMode && (
-          <div className="modal-backdrop" onClick={()=>setModalMode(null)}>
-            <div className="modal" onClick={e=>e.stopPropagation()}>
-
-              <div className="modal-head">
-                <div>
-                  <div className="modal-eyebrow">{modalMode==="add"?"New Customer":"Edit Customer"}</div>
-                  <div className="modal-title">{modalMode==="add"?"Register a new customer":`Editing: ${form.firstName||"…"} ${form.lastName||""}`}</div>
-                </div>
-                <button className="modal-close" onClick={()=>setModalMode(null)}>×</button>
-              </div>
-
-              {/* Live preview */}
-              {(form.firstName || form.lastName) && (
-                <div className="modal-preview">
-                  <div className="mp-initials" style={{ background:`${(avatarColor(editTarget||0)[0])}20`, border:`1px solid ${avatarColor(editTarget||0)[0]}30`, color:avatarColor(editTarget||0)[0] }}>
-                    {form.firstName?.[0]?.toUpperCase()}{form.lastName?.[0]?.toUpperCase()}
-                  </div>
-                  <div>
-                    <div className="mp-name">{form.firstName} {form.lastName}</div>
-                    <div className="mp-email">{form.email || form.phone || "—"}</div>
-                  </div>
-                </div>
-              )}
-
-              <div className="modal-body">
-
-                {/* ── Personal ── */}
-                <div className="m-section">Personal Information</div>
-
-                <div className="field-row-2">
-                  <div className="field">
-                    <label className="label">First Name <span className="label-req">*</span></label>
-                    <input className={`input${errors.firstName?" error":""}`} placeholder="Ravi" value={form.firstName} onChange={e=>updateForm("firstName",e.target.value)} autoFocus />
-                    {errors.firstName && <span className="field-error">⚠ {errors.firstName}</span>}
-                  </div>
-                  <div className="field">
-                    <label className="label">Last Name <span className="label-req">*</span></label>
-                    <input className={`input${errors.lastName?" error":""}`} placeholder="Mendis" value={form.lastName} onChange={e=>updateForm("lastName",e.target.value)} />
-                    {errors.lastName && <span className="field-error">⚠ {errors.lastName}</span>}
-                  </div>
-                </div>
-
-                <div className="field-row-2">
-                  <div className="field">
-                    <label className="label">Date of Birth</label>
-                    <input className="input" type="date" value={form.dob} onChange={e=>updateForm("dob",e.target.value)} />
-                  </div>
-                  <div className="field">
-                    <label className="label">Gender</label>
-                    <div className="sel-wrap">
-                      <select className="mselect" value={form.gender} onChange={e=>updateForm("gender",e.target.value)}>
-                        <option value="">Select…</option>
-                        <option>Male</option>
-                        <option>Female</option>
-                        <option>Non-binary</option>
-                        <option>Prefer not to say</option>
-                      </select>
-                      <span className="sel-arrow">▾</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* ── Contact ── */}
-                <div className="m-section">Contact Details</div>
-
-                <div className="field-row-2">
-                  <div className="field">
-                    <label className="label">Phone <span className="label-req">*</span></label>
-                    <input className={`input${errors.phone?" error":""}`} placeholder="+94 71 234 5678" value={form.phone} onChange={e=>updateForm("phone",e.target.value)} style={{ fontFamily:"'Geist Mono',monospace",fontSize:13 }} />
-                    {errors.phone && <span className="field-error">⚠ {errors.phone}</span>}
-                  </div>
-                  <div className="field">
-                    <label className="label">Email <span className="label-hint">— optional</span></label>
-                    <input className={`input${errors.email?" error":""}`} type="email" placeholder="name@example.com" value={form.email} onChange={e=>updateForm("email",e.target.value)} />
-                    {errors.email && <span className="field-error">⚠ {errors.email}</span>}
-                  </div>
-                </div>
-
-                <div className="field">
-                  <label className="label">NIC / National ID <span className="label-hint">— optional</span></label>
-                  <input className="input" placeholder="199012345678 or 900123456V" value={form.nic} onChange={e=>updateForm("nic",e.target.value)} style={{ fontFamily:"'Geist Mono',monospace",fontSize:13 }} />
-                </div>
-
-                {/* ── Address ── */}
-                <div className="m-section">Address</div>
-
-                <div className="field">
-                  <label className="label">Street Address</label>
-                  <input className="input" placeholder="12 Galle Road" value={form.address} onChange={e=>updateForm("address",e.target.value)} />
-                </div>
-
-                <div className="field">
-                  <label className="label">City</label>
-                  <div className="sel-wrap">
-                    <select className="mselect" value={form.city} onChange={e=>updateForm("city",e.target.value)}>
-                      <option value="">Select city…</option>
-                      {["Colombo","Nugegoda","Maharagama","Wattala","Kelaniya","Kotte","Kandy","Gampaha","Rajagiriya","Kurunegala","Other"].map(c=><option key={c}>{c}</option>)}
-                    </select>
-                    <span className="sel-arrow">▾</span>
-                  </div>
-                </div>
-
-                {/* ── Tags & Status ── */}
-                <div className="m-section">Tags &amp; Status</div>
-
-                <div className="field">
-                  <label className="label">Tags</label>
-                  <div className="tag-check-row">
-                    {["vip","gold","wholesale","regular","new"].map(t => {
-                      const s = TAG_COLORS[t]||{};
-                      const sel = form.tags.includes(t);
-                      return (
-                        <div
-                          key={t}
-                          className={`tag-check${sel?" selected":""}`}
-                          style={sel?{"--tc":s.text,"--tbg":s.bg,borderColor:s.border}:{}}
-                          onClick={()=>toggleTag(t)}
-                        >
-                          {sel ? "✓ " : ""}{t}
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                <div className="toggle-row">
-                  <div className="toggle-info">
-                    <div className="toggle-title">Active</div>
-                    <div className="toggle-desc">Allow this customer to transact in the POS</div>
-                  </div>
-                  <label className="toggle">
-                    <input type="checkbox" checked={form.status==="active"} onChange={e=>updateForm("status",e.target.checked?"active":"inactive")} />
-                    <div className="toggle-track"><div className="toggle-thumb" /></div>
-                  </label>
-                </div>
-
-                {/* ── Notes ── */}
-                <div className="m-section">Notes</div>
-                <div className="field">
-                  <textarea className="textarea" placeholder="Any special instructions, preferences or notes about this customer…" rows={2} value={form.notes} onChange={e=>updateForm("notes",e.target.value)} />
-                </div>
-
-              </div>
-
-              <div className="modal-footer">
-                <span className="modal-footer-hint">{modalMode==="add"?"Customer will be registered immediately":"Changes saved immediately"}</span>
-                <button className="btn btn-ghost" onClick={()=>setModalMode(null)}>Cancel</button>
-                <button className="btn btn-gold" onClick={handleSave}>
-                  {modalMode==="add"?"✦ Register Customer":"✓ Save Changes"}
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* ══ DELETE CONFIRM ══ */}
         {delTarget && (() => {
@@ -1352,6 +1188,16 @@ export default function CustomerManagement() {
           <span className="toast-msg">{toast.msg}</span>
           {toast.sub && <span className="toast-sub">· {toast.sub}</span>}
         </div>
+
+        {modalMode === "add" && (
+          <AddCustomer
+            onClose={() => setModalMode(null)}
+            onSave={(newCustomer) => {
+              setCustomers(c => [newCustomer, ...c]);
+              showToast("Customer added", `${newCustomer.firstName} ${newCustomer.lastName}`);
+            }}
+          />
+        )}
 
       </div>
     </>
