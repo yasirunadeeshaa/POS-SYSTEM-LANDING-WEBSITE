@@ -1,1340 +1,954 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 
-// ── STYLES ─────────────────────────────────────────────────────────────────
-const STYLES = `
-  @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Geist+Mono:wght@300;400;500;600&family=Outfit:wght@300;400;500;600;700&display=swap');
+// ── CATEGORIES & OPTIONS ──────────────────────────────────────────────────────
+const CATEGORIES = ["Electronics", "Apparel", "Accessories", "Home", "Lifestyle", "Stationery", "Sports"];
+const BRANDS     = ["Nexus", "Generic", "OEM", "Anker", "Logitech"];
+const SUPPLIERS  = ["TechDist Co.", "FabricWorld", "Global Imports", "HomeGoods Inc.", "DirectSource"];
+const LOCATIONS  = ["Shelf A-1","Shelf A-2","Shelf A-3","Shelf A-4","Shelf A-5",
+                    "Shelf B-1","Shelf B-2","Shelf B-3","Shelf C-1","Shelf C-2",
+                    "Shelf D-1","Shelf D-2","Shelf D-3","Shelf D-4","Shelf E-1","Shelf E-2","Shelf F-1","Shelf F-2"];
+const STATUS_OPTIONS = ["active", "draft", "archived"];
+const EMOJI_ICONS = ["📦","🎧","👕","👜","🕯","🍶","📓","🔌","📱","🧘","☕","🪴","🧦","💨","⌨","🛋","🔋","🖥","🎮","📷","🖊","🎒","👟","🔦","🧴"];
 
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+const MODAL_CSS = `
+  @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,400&family=Geist+Mono:wght@400;500;600&family=Outfit:wght@300;400;500;600;700&display=swap');
 
   :root {
-    --cream: #F6F3EC;
-    --paper: #FDFBF7;
-    --warm:  #F0EBE0;
-    --warm2: #E8E2D4;
-
-    --ink:   #1B1713;
-    --ink80: #2E2720;
-    --ink60: #4B4038;
-    --ink50: #6B5F54;
-    --ink40: #9E9080;
-    --ink30: #B8AFA4;
-    --ink20: #CFC8BC;
-    --ink10: #E4DDD2;
-    --ink06: #EDE8E0;
-    --ink03: #F5F1EB;
-
-    --gold:    #B8902A;
-    --goldl:   #D4A83C;
-    --goldd:   #8A6A1A;
-    --goldbg:  rgba(184,144,42,.07);
-    --goldbr:  rgba(184,144,42,.22);
-
-    --green:   #2D6A4F;
-    --greenl:  #3D8A65;
-    --greenbg: rgba(45,106,79,.07);
-    --greenbr: rgba(45,106,79,.22);
-
-    --red:     #B5372A;
-    --redbg:   rgba(181,55,42,.07);
-    --redbr:   rgba(181,55,42,.2);
-
-    --blue:    #2B5490;
-    --bluebg:  rgba(43,84,144,.07);
-    --bluebr:  rgba(43,84,144,.22);
-
-    --purple:  #5B3D8F;
-    --purplebg:rgba(91,61,143,.07);
-    --purplebr:rgba(91,61,143,.22);
-
-    --shadow-xs: 0 1px 2px rgba(27,23,19,.04);
-    --shadow-sm: 0 2px 8px rgba(27,23,19,.06), 0 1px 2px rgba(27,23,19,.04);
-    --shadow-md: 0 6px 20px rgba(27,23,19,.09), 0 2px 4px rgba(27,23,19,.05);
-    --shadow-lg: 0 16px 48px rgba(27,23,19,.13), 0 4px 12px rgba(27,23,19,.07);
-
-    --topbar-h: 60px;
-    --r-sm: 6px;
-    --r-md: 10px;
-    --r-lg: 14px;
+    --cream: #F6F3EC; --paper: #FDFBF7; --warm: #F0EBE0; --warm2: #E8E2D4;
+    --ink: #1B1713; --ink80: #2E2720; --ink60: #4B4038; --ink50: #6B5F54;
+    --ink40: #9E9080; --ink30: #B8AFA4; --ink20: #CFC8BC; --ink10: #E4DDD2;
+    --ink06: #EDE8E0; --ink03: #F5F1EB;
+    --gold: #B8902A; --goldl: #D4A83C; --goldd: #8A6A1A;
+    --goldbg: rgba(184,144,42,.07); --goldbr: rgba(184,144,42,.22);
+    --green: #2D6A4F; --greenl: #3D8A65;
+    --greenbg: rgba(45,106,79,.07); --greenbr: rgba(45,106,79,.22);
+    --red: #B5372A; --redbg: rgba(181,55,42,.07); --redbr: rgba(181,55,42,.2);
+    --blue: #2B5490; --bluebg: rgba(43,84,144,.07); --bluebr: rgba(43,84,144,.22);
+    --shadow-lg: 0 24px 64px rgba(27,23,19,.22), 0 6px 20px rgba(27,23,19,.12);
   }
 
-  html, body, #root { height: 100%; background: var(--cream); overflow: hidden; }
+  @keyframes overlayIn { from{opacity:0} to{opacity:1} }
+  @keyframes modalIn   { from{opacity:0;transform:translateY(20px) scale(.98)} to{opacity:1;transform:none} }
+  @keyframes fadeUp    { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:none} }
+  @keyframes shake     { 0%,100%{transform:translateX(0)} 20%,60%{transform:translateX(-5px)} 40%,80%{transform:translateX(5px)} }
 
-  .shell {
-    display: flex; flex-direction: column; height: 100vh;
-    font-family: 'Outfit', sans-serif;
-    color: var(--ink);
-    background: var(--cream);
-    background-image: radial-gradient(ellipse 80% 50% at 50% -10%, rgba(184,144,42,.05) 0%, transparent 60%);
-  }
-
-  /* ══ TOPBAR ══ */
-  .topbar {
-    height: var(--topbar-h); flex-shrink: 0;
-    background: var(--ink);
-    border-bottom: 1px solid rgba(184,144,42,.35);
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 0 28px; z-index: 100; position: relative;
-  }
-  .topbar::after {
-    content: ''; position: absolute; bottom: -1px; left: 0; right: 0; height: 1px;
-    background: linear-gradient(90deg, transparent 0%, var(--goldl) 30%, var(--gold) 70%, transparent 100%);
-    opacity: .4;
-  }
-  .topbar-left  { display: flex; align-items: center; gap: 24px; }
-  .topbar-right { display: flex; align-items: center; gap: 10px; }
-
-  .brand { display: flex; align-items: center; gap: 13px; cursor: default; }
-  .brand-mark {
-    width: 36px; height: 36px; border-radius: 8px;
-    border: 1.5px solid rgba(184,144,42,.45);
-    background: rgba(184,144,42,.08);
+  .modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(27,23,19,.55);
+    backdrop-filter: blur(3px);
+    z-index: 500;
     display: flex; align-items: center; justify-content: center;
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 20px; font-weight: 700; color: var(--goldl);
-  }
-  .brand-text { display: flex; flex-direction: column; gap: 1px; }
-  .brand-name { font-family: 'Cormorant Garamond', serif; font-size: 19px; font-weight: 600; color: #F6F3EC; letter-spacing: .2px; line-height: 1; }
-  .brand-sub  { font-size: 9px; font-weight: 600; letter-spacing: 2.2px; text-transform: uppercase; color: rgba(184,144,42,.7); line-height: 1; }
-
-  .breadcrumb { display: flex; align-items: center; gap: 8px; font-size: 11.5px; font-weight: 500; }
-  .bc-sep    { color: rgba(246,243,236,.15); font-size: 10px; }
-  .bc-link   { color: rgba(246,243,236,.3); cursor: pointer; transition: color .15s; }
-  .bc-link:hover { color: rgba(246,243,236,.65); }
-  .bc-active { color: rgba(246,243,236,.75); font-weight: 600; }
-
-  .icon-btn {
-    width: 36px; height: 36px; border-radius: 8px;
-    background: rgba(246,243,236,.04); border: 1px solid rgba(246,243,236,.09);
-    color: rgba(246,243,236,.35); cursor: pointer; font-size: 14px;
-    display: flex; align-items: center; justify-content: center; transition: all .18s;
-  }
-  .icon-btn:hover { background: rgba(246,243,236,.08); border-color: rgba(246,243,236,.16); color: rgba(246,243,236,.75); }
-  .avatar {
-    width: 36px; height: 36px; border-radius: 8px;
-    border: 1.5px solid rgba(184,144,42,.3); background: rgba(184,144,42,.08);
-    display: flex; align-items: center; justify-content: center;
-    font-family: 'Cormorant Garamond', serif; font-size: 13px; font-weight: 700;
-    color: var(--goldl); cursor: pointer; transition: border-color .18s; letter-spacing: .3px;
-  }
-  .avatar:hover { border-color: rgba(184,144,42,.55); }
-
-  .vdiv { width: 1px; height: 22px; background: rgba(246,243,236,.08); }
-
-  /* ══ CONTENT ══ */
-  .content {
-    flex: 1; overflow-y: auto;
-    padding: 24px 28px 40px;
-    display: flex; flex-direction: column; gap: 20px;
-  }
-  .content::-webkit-scrollbar { width: 3px; }
-  .content::-webkit-scrollbar-thumb { background: var(--ink10); border-radius: 3px; }
-
-  /* ══ PAGE HEADER ══ */
-  .page-header {
-    display: flex; align-items: flex-end; justify-content: space-between;
-    animation: fadeUp .35s ease both;
-  }
-  @keyframes fadeUp { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:none} }
-
-  .page-title-block {}
-  .page-eyebrow {
-    font-size: 9px; font-weight: 700; letter-spacing: 2.5px; text-transform: uppercase;
-    color: var(--gold); margin-bottom: 6px; display: flex; align-items: center; gap: 8px;
-  }
-  .page-eyebrow::before { content: ''; width: 20px; height: 1px; background: var(--gold); opacity: .5; }
-  .page-title {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 32px; font-weight: 600; color: var(--ink);
-    letter-spacing: -.2px; line-height: 1; margin-bottom: 6px;
-  }
-  .page-desc { font-size: 13px; color: var(--ink40); font-weight: 400; }
-
-  .page-actions { display: flex; gap: 10px; align-items: center; }
-
-  /* Buttons */
-  .btn {
-    display: inline-flex; align-items: center; gap: 8px;
-    padding: 10px 20px; border-radius: var(--r-sm);
-    font-size: 13px; font-weight: 600;
-    cursor: pointer; transition: all .2s; font-family: 'Outfit', sans-serif;
-    letter-spacing: .2px; border: 1px solid transparent;
-  }
-  .btn-ghost {
-    background: transparent; border-color: var(--ink10); color: var(--ink50);
-  }
-  .btn-ghost:hover { border-color: var(--ink20); color: var(--ink60); background: var(--warm); }
-
-  .btn-gold {
-    background: var(--gold); border-color: var(--goldd);
-    color: #fff;
-    box-shadow: 0 2px 8px rgba(184,144,42,.3), 0 1px 2px rgba(184,144,42,.2);
-  }
-  .btn-gold:hover {
-    background: var(--goldl); border-color: var(--gold);
-    box-shadow: 0 4px 16px rgba(184,144,42,.4), 0 1px 3px rgba(184,144,42,.25);
-    transform: translateY(-1px);
-  }
-  .btn-gold:active { transform: none; }
-
-  .btn-green {
-    background: var(--green); border-color: #205038;
-    color: #fff;
-    box-shadow: 0 2px 8px rgba(45,106,79,.3);
-  }
-  .btn-green:hover {
-    background: var(--greenl);
-    box-shadow: 0 4px 16px rgba(45,106,79,.35);
-    transform: translateY(-1px);
+    padding: 24px;
+    animation: overlayIn .2s ease;
   }
 
-  /* ══ FORM LAYOUT ══ */
-  .form-grid { display: grid; grid-template-columns: 1fr 340px; gap: 20px; align-items: start; }
-
-  /* ══ CARD ══ */
-  .card {
-    background: var(--paper); border: 1px solid var(--ink10);
-    border-radius: var(--r-md); box-shadow: var(--shadow-xs);
-    overflow: hidden;
-    animation: fadeUp .4s ease both;
-  }
-  .card-header {
-    padding: 18px 22px 16px;
-    border-bottom: 1px solid var(--ink06);
-    display: flex; align-items: center; gap: 13px;
-  }
-  .card-header-icon {
-    width: 36px; height: 36px; border-radius: 8px; flex-shrink: 0;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 16px;
-  }
-  .card-title {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 17px; font-weight: 600; color: var(--ink);
-    letter-spacing: .1px; line-height: 1.1; margin-bottom: 2px;
-  }
-  .card-sub { font-size: 11px; color: var(--ink40); }
-
-  .card-body { padding: 22px; display: flex; flex-direction: column; gap: 18px; }
-
-  /* ══ FORM ELEMENTS ══ */
-  .field { display: flex; flex-direction: column; gap: 7px; }
-  .field-row { display: grid; gap: 14px; }
-  .field-row-2 { grid-template-columns: 1fr 1fr; }
-  .field-row-3 { grid-template-columns: 1fr 1fr 1fr; }
-
-  .label {
-    font-size: 11px; font-weight: 700; letter-spacing: .8px;
-    text-transform: uppercase; color: var(--ink50);
-    display: flex; align-items: center; gap: 6px;
-  }
-  .label-req { color: var(--red); font-size: 13px; line-height: 1; }
-  .label-hint { font-size: 10px; font-weight: 400; color: var(--ink30); letter-spacing: 0; text-transform: none; }
-
-  .input, .textarea, .select {
-    width: 100%; padding: 10px 13px;
-    background: var(--cream); border: 1.5px solid var(--ink10);
-    border-radius: var(--r-sm); color: var(--ink);
-    font-size: 13.5px; font-weight: 500;
-    font-family: 'Outfit', sans-serif;
-    outline: none; transition: all .18s;
-    appearance: none;
-  }
-  .input::placeholder, .textarea::placeholder { color: var(--ink20); font-weight: 400; }
-  .input:hover, .textarea:hover, .select:hover { border-color: var(--ink20); background: var(--paper); }
-  .input:focus, .textarea:focus, .select:focus {
-    border-color: var(--gold);
+  .modal-shell {
     background: var(--paper);
-    box-shadow: 0 0 0 3px rgba(184,144,42,.1);
-  }
-  .input.error, .textarea.error, .select.error {
-    border-color: var(--red);
-    box-shadow: 0 0 0 3px rgba(181,55,42,.08);
-  }
-
-  .input-prefix-wrap { position: relative; }
-  .input-prefix {
-    position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
-    font-family: 'Geist Mono', monospace;
-    font-size: 13px; font-weight: 500; color: var(--ink40);
-    pointer-events: none; user-select: none;
-  }
-  .input-prefix-wrap .input { padding-left: 24px; }
-
-  .input-suffix-wrap { position: relative; }
-  .input-suffix {
-    position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
-    font-size: 11px; font-weight: 600; color: var(--ink30);
-    pointer-events: none; user-select: none;
-  }
-  .input-suffix-wrap .input { padding-right: 44px; }
-
-  .select-wrap { position: relative; }
-  .select-arrow {
-    position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
-    font-size: 10px; color: var(--ink30); pointer-events: none;
+    border: 1px solid var(--ink10);
+    border-radius: 16px;
+    width: 100%; max-width: 740px;
+    max-height: calc(100vh - 48px);
+    display: flex; flex-direction: column;
+    box-shadow: var(--shadow-lg);
+    animation: modalIn .28s cubic-bezier(.16,1,.3,1);
+    overflow: hidden;
+    font-family: 'Outfit', sans-serif;
   }
 
-  .textarea { resize: vertical; min-height: 90px; line-height: 1.55; }
-
-  .field-error { font-size: 11px; color: var(--red); font-weight: 500; display: flex; align-items: center; gap: 5px; }
-  .field-hint  { font-size: 11px; color: var(--ink30); }
-
-  /* SKU preview */
-  .sku-preview {
-    display: flex; align-items: center; gap: 8px;
-    padding: 9px 13px;
-    background: var(--ink); border-radius: var(--r-sm);
-    border: 1px solid rgba(184,144,42,.2);
-  }
-  .sku-preview-label { font-size: 9.5px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--ink40); }
-  .sku-preview-value { font-family: 'Geist Mono', monospace; font-size: 13px; font-weight: 600; color: var(--goldl); letter-spacing: 1px; }
-
-  /* ══ DIVIDER ══ */
-  .hdivider { height: 1px; background: var(--ink06); margin: 2px 0; }
-  .section-label {
-    font-size: 9px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
-    color: var(--ink30); display: flex; align-items: center; gap: 10px; margin-bottom: 2px;
-  }
-  .section-label::after { content: ''; flex: 1; height: 1px; background: var(--ink06); }
-
-  /* ══ IMAGE UPLOAD ══ */
-  .upload-zone {
-    border: 2px dashed var(--ink10); border-radius: var(--r-md);
-    background: var(--warm); padding: 32px 20px;
-    display: flex; flex-direction: column; align-items: center; gap: 12px;
-    cursor: pointer; transition: all .2s; text-align: center;
+  /* ── Modal Header ── */
+  .modal-head {
+    background: var(--ink);
+    border-bottom: 1px solid rgba(184,144,42,.3);
+    padding: 20px 26px 18px;
+    flex-shrink: 0;
+    display: flex; align-items: flex-start; justify-content: space-between; gap: 16px;
     position: relative;
   }
-  .upload-zone:hover { border-color: var(--gold); background: var(--goldbg); }
-  .upload-zone.drag-over { border-color: var(--gold); background: rgba(184,144,42,.1); transform: scale(1.01); }
-
-  .upload-ico {
-    width: 52px; height: 52px; border-radius: 12px;
-    background: var(--paper); border: 1px solid var(--ink10);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 22px; box-shadow: var(--shadow-xs);
-    transition: transform .2s;
+  .modal-head::after {
+    content: ''; position: absolute; bottom: -1px; left: 0; right: 0; height: 1px;
+    background: linear-gradient(90deg, transparent, var(--goldl) 30%, var(--gold) 70%, transparent);
+    opacity: .4;
   }
-  .upload-zone:hover .upload-ico { transform: translateY(-3px); box-shadow: var(--shadow-sm); }
-
-  .upload-title { font-size: 13.5px; font-weight: 600; color: var(--ink); }
-  .upload-sub   { font-size: 11px; color: var(--ink40); line-height: 1.5; }
-  .upload-types { display: flex; gap: 6px; }
-  .upload-type-tag {
-    padding: 3px 9px; border-radius: 20px;
-    background: var(--paper); border: 1px solid var(--ink10);
-    font-size: 10px; font-weight: 700; color: var(--ink40);
-    font-family: 'Geist Mono', monospace;
-  }
-
-  /* Image preview grid */
-  .img-preview-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 4px; }
-  .img-preview-cell {
-    aspect-ratio: 1; border-radius: 8px; overflow: hidden;
-    border: 1.5px solid var(--ink10); background: var(--warm);
-    position: relative; display: flex; align-items: center; justify-content: center;
-  }
-  .img-preview-cell img { width: 100%; height: 100%; object-fit: cover; }
-  .img-remove {
-    position: absolute; top: 5px; right: 5px;
-    width: 20px; height: 20px; border-radius: 50%;
-    background: rgba(27,23,19,.65); color: #fff;
-    border: none; cursor: pointer; font-size: 11px;
-    display: flex; align-items: center; justify-content: center;
-    opacity: 0; transition: opacity .15s;
-  }
-  .img-preview-cell:hover .img-remove { opacity: 1; }
-  .img-add-cell {
-    aspect-ratio: 1; border-radius: 8px;
-    border: 2px dashed var(--ink10); background: var(--warm);
-    display: flex; align-items: center; justify-content: center;
-    cursor: pointer; font-size: 22px; color: var(--ink20);
-    transition: all .18s;
-  }
-  .img-add-cell:hover { border-color: var(--gold); color: var(--gold); background: var(--goldbg); }
-
-  /* ══ TOGGLE SWITCH ══ */
-  .toggle-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
-  .toggle-info { flex: 1; }
-  .toggle-title { font-size: 13px; font-weight: 600; color: var(--ink); margin-bottom: 2px; }
-  .toggle-desc  { font-size: 11px; color: var(--ink40); line-height: 1.4; }
-  .toggle {
-    position: relative; width: 42px; height: 24px; flex-shrink: 0; cursor: pointer;
-  }
-  .toggle input { opacity: 0; width: 0; height: 0; position: absolute; }
-  .toggle-track {
-    position: absolute; inset: 0; border-radius: 12px;
-    background: var(--ink10); transition: all .2s;
-    border: 1.5px solid var(--ink10);
-  }
-  .toggle input:checked ~ .toggle-track { background: var(--green); border-color: #205038; }
-  .toggle-thumb {
-    position: absolute; top: 3px; left: 3px;
-    width: 16px; height: 16px; border-radius: 50%;
-    background: #fff; transition: transform .2s cubic-bezier(.16,1,.3,1);
-    box-shadow: 0 1px 3px rgba(27,23,19,.2);
-  }
-  .toggle input:checked ~ .toggle-track .toggle-thumb { transform: translateX(18px); }
-
-  /* ══ BADGE/TAG INPUT ══ */
-  .tag-input-wrap {
-    display: flex; flex-wrap: wrap; gap: 6px;
-    padding: 8px 10px; min-height: 44px;
-    background: var(--cream); border: 1.5px solid var(--ink10);
-    border-radius: var(--r-sm); transition: all .18s; cursor: text;
-  }
-  .tag-input-wrap:focus-within { border-color: var(--gold); background: var(--paper); box-shadow: 0 0 0 3px rgba(184,144,42,.1); }
-  .tag-chip {
-    display: inline-flex; align-items: center; gap: 5px;
-    padding: 3px 9px; border-radius: 20px;
-    background: var(--goldbg); border: 1px solid var(--goldbr);
-    color: var(--gold); font-size: 12px; font-weight: 600;
-  }
-  .tag-remove { background: none; border: none; cursor: pointer; color: var(--gold); opacity: .6; font-size: 13px; line-height: 1; padding: 0; transition: opacity .15s; }
-  .tag-remove:hover { opacity: 1; }
-  .tag-input-field {
-    border: none; background: none; outline: none; font-family: 'Outfit', sans-serif;
-    font-size: 13px; font-weight: 500; color: var(--ink); flex: 1; min-width: 80px;
-    padding: 1px 3px;
-  }
-  .tag-input-field::placeholder { color: var(--ink20); }
-
-  /* ══ VARIANT TABLE ══ */
-  .variant-table { border: 1px solid var(--ink10); border-radius: var(--r-sm); overflow: hidden; }
-  .variant-head {
-    display: grid; grid-template-columns: 1fr 100px 100px 80px 36px;
-    gap: 8px; padding: 9px 13px;
-    background: var(--warm); border-bottom: 1px solid var(--ink10);
-    font-size: 9.5px; font-weight: 700; letter-spacing: 1.5px;
-    text-transform: uppercase; color: var(--ink40);
-  }
-  .variant-row {
-    display: grid; grid-template-columns: 1fr 100px 100px 80px 36px;
-    gap: 8px; padding: 8px 13px; align-items: center;
-    border-bottom: 1px solid var(--ink06); transition: background .12s;
-  }
-  .variant-row:last-child { border-bottom: none; }
-  .variant-row:hover { background: var(--warm); }
-  .variant-input {
-    width: 100%; padding: 6px 9px;
-    background: transparent; border: 1px solid transparent;
-    border-radius: 5px; font-family: 'Outfit', sans-serif;
-    font-size: 12.5px; color: var(--ink); outline: none; transition: all .15s;
-  }
-  .variant-input:focus { background: var(--cream); border-color: var(--gold); box-shadow: 0 0 0 2px rgba(184,144,42,.1); }
-  .variant-input.mono { font-family: 'Geist Mono', monospace; font-size: 12px; }
-  .variant-del {
-    width: 28px; height: 28px; border-radius: 6px;
-    border: 1px solid transparent; background: transparent;
-    color: var(--ink20); cursor: pointer; font-size: 14px;
-    display: flex; align-items: center; justify-content: center;
-    transition: all .15s;
-  }
-  .variant-del:hover { background: var(--redbg); border-color: var(--redbr); color: var(--red); }
-
-  .add-variant-btn {
+  .modal-eyebrow {
+    font-size: 9px; font-weight: 700; letter-spacing: 2.5px; text-transform: uppercase;
+    color: rgba(184,144,42,.7); margin-bottom: 5px;
     display: flex; align-items: center; gap: 8px;
-    padding: 9px 13px; width: 100%;
-    border: 1px dashed var(--ink10); border-radius: var(--r-sm);
-    background: transparent; color: var(--ink40);
-    font-size: 12px; font-weight: 600; cursor: pointer;
-    font-family: 'Outfit', sans-serif; transition: all .18s;
   }
-  .add-variant-btn:hover { border-color: var(--gold); color: var(--gold); background: var(--goldbg); }
-
-  /* ══ STATUS SELECTOR ══ */
-  .status-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
-  .status-opt {
-    display: flex; flex-direction: column; align-items: center; gap: 7px;
-    padding: 12px 8px; border-radius: var(--r-sm);
-    border: 1.5px solid var(--ink10); background: var(--warm);
-    cursor: pointer; transition: all .18s; text-align: center;
-  }
-  .status-opt:hover { border-color: var(--ink20); background: var(--paper); }
-  .status-opt.selected { border-color: var(--status-c); background: var(--status-bg); box-shadow: 0 0 0 1px var(--status-c); }
-  .status-dot-lg { width: 10px; height: 10px; border-radius: 50%; }
-  .status-lbl    { font-size: 11.5px; font-weight: 700; color: var(--ink); }
-  .status-desc   { font-size: 10px; color: var(--ink40); line-height: 1.3; }
-
-  /* ══ SUMMARY PANEL ══ */
-  .summary-card {
-    background: var(--paper); border: 1px solid var(--ink10);
-    border-radius: var(--r-md); box-shadow: var(--shadow-xs);
-    overflow: hidden; position: sticky; top: 0;
-    animation: fadeUp .45s ease both;
-  }
-  .summary-top {
-    background: var(--ink); padding: 16px 18px;
-    border-bottom: 1px solid rgba(184,144,42,.2);
-  }
-  .summary-title {
+  .modal-eyebrow::before { content:''; width:16px; height:1px; background:var(--gold); opacity:.5; }
+  .modal-title {
     font-family: 'Cormorant Garamond', serif;
-    font-size: 16px; font-weight: 600; color: #F6F3EC; margin-bottom: 2px;
+    font-size: 24px; font-weight: 600; color: #F6F3EC; letter-spacing: -.1px; line-height: 1;
+    margin-bottom: 4px;
   }
-  .summary-sub { font-size: 10.5px; color: rgba(246,243,236,.3); }
-  .summary-body { padding: 16px 18px; display: flex; flex-direction: column; gap: 12px; }
-
-  .summary-preview {
-    border-radius: 8px; overflow: hidden;
-    border: 1px solid var(--ink10);
-    background: var(--warm); aspect-ratio: 4/3;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 32px; position: relative; margin-bottom: 4px;
+  .modal-subtitle { font-size: 12px; color: rgba(246,243,236,.3); font-weight: 400; }
+  .modal-close-btn {
+    width: 32px; height: 32px; border-radius: 7px; flex-shrink: 0;
+    background: rgba(246,243,236,.06); border: 1px solid rgba(246,243,236,.1);
+    color: rgba(246,243,236,.4); cursor: pointer; font-size: 18px;
+    display: flex; align-items: center; justify-content: center; transition: all .15s;
+    line-height: 1;
   }
-  .summary-preview img { width: 100%; height: 100%; object-fit: cover; position: absolute; inset: 0; }
-  .summary-preview-empty { display: flex; flex-direction: column; align-items: center; gap: 6px; }
-  .summary-preview-hint { font-size: 10.5px; color: var(--ink30); font-weight: 500; }
+  .modal-close-btn:hover { background: rgba(246,243,236,.12); color: rgba(246,243,236,.85); }
 
-  .summary-name { font-size: 15px; font-weight: 700; color: var(--ink); line-height: 1.3; min-height: 20px; }
-  .summary-sku  { font-family: 'Geist Mono', monospace; font-size: 11px; color: var(--gold); margin-top: 3px; letter-spacing: .8px; }
-  .summary-cat  { font-size: 11.5px; color: var(--ink40); margin-top: 1px; }
-
-  .summary-divider { height: 1px; background: var(--ink06); }
-
-  .summary-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-  .summary-row-label { font-size: 11px; color: var(--ink40); font-weight: 500; }
-  .summary-row-value { font-family: 'Geist Mono', monospace; font-size: 12.5px; font-weight: 600; color: var(--ink); }
-  .summary-price-big {
-    font-family: 'Geist Mono', monospace;
-    font-size: 28px; font-weight: 600; color: var(--green);
-    line-height: 1; letter-spacing: -1px;
+  /* ── Step Nav ── */
+  .step-nav {
+    display: flex; align-items: center; gap: 0;
+    padding: 0 26px;
+    background: var(--ink);
+    border-bottom: 1px solid rgba(184,144,42,.15);
+    flex-shrink: 0;
   }
-
-  .progress-steps { display: flex; flex-direction: column; gap: 8px; margin-top: 4px; }
-  .progress-step { display: flex; align-items: center; gap: 10px; }
-  .pstep-dot {
-    width: 18px; height: 18px; border-radius: 50%; flex-shrink: 0;
+  .step-tab {
+    display: flex; align-items: center; gap: 8px;
+    padding: 13px 18px 12px;
+    font-size: 11.5px; font-weight: 600; cursor: pointer;
+    color: rgba(246,243,236,.28); border-bottom: 2px solid transparent;
+    transition: all .18s; white-space: nowrap;
+    background: none; border-top: none; border-left: none; border-right: none;
+    font-family: 'Outfit', sans-serif;
+  }
+  .step-tab:hover { color: rgba(246,243,236,.6); }
+  .step-tab.active { color: var(--goldl); border-bottom-color: var(--gold); }
+  .step-tab.done   { color: rgba(246,243,236,.45); }
+  .step-num {
+    width: 18px; height: 18px; border-radius: 50%;
     display: flex; align-items: center; justify-content: center;
     font-size: 9px; font-weight: 700;
+    background: rgba(246,243,236,.1); color: rgba(246,243,236,.35);
+    transition: all .18s;
   }
-  .pstep-dot.done  { background: var(--greenbg); border: 1.5px solid var(--greenbr); color: var(--green); }
-  .pstep-dot.empty { background: var(--warm2);   border: 1.5px solid var(--ink10);   color: var(--ink20); }
-  .pstep-label { font-size: 12px; font-weight: 500; }
-  .pstep-label.done  { color: var(--ink60); }
-  .pstep-label.empty { color: var(--ink30); }
+  .step-tab.active .step-num { background: var(--gold); color: #fff; }
+  .step-tab.done   .step-num { background: var(--green); color: #fff; }
 
-  .submit-btn {
-    width: 100%; padding: 13px;
-    background: linear-gradient(135deg, var(--gold), var(--goldl));
-    border: none; border-radius: var(--r-sm);
-    color: #fff; font-size: 14px; font-weight: 700;
-    cursor: pointer; font-family: 'Outfit', sans-serif;
-    letter-spacing: .3px; transition: all .22s;
-    box-shadow: 0 4px 16px rgba(184,144,42,.35);
-    display: flex; align-items: center; justify-content: center; gap: 8px;
+  /* ── Body ── */
+  .modal-body {
+    flex: 1; overflow-y: auto; padding: 24px 26px;
+    background: var(--cream);
+    background-image: radial-gradient(ellipse 80% 40% at 50% 0%, rgba(184,144,42,.04) 0%, transparent 55%);
   }
-  .submit-btn:hover {
-    box-shadow: 0 6px 24px rgba(184,144,42,.45);
-    transform: translateY(-2px);
-  }
-  .submit-btn:active { transform: none; }
-  .submit-btn:disabled { opacity: .5; cursor: not-allowed; transform: none; box-shadow: none; }
+  .modal-body::-webkit-scrollbar { width: 3px; }
+  .modal-body::-webkit-scrollbar-thumb { background: var(--ink10); border-radius: 3px; }
 
-  .draft-btn {
-    width: 100%; padding: 10px;
-    background: transparent; border: 1.5px solid var(--ink10);
-    border-radius: var(--r-sm); color: var(--ink50);
-    font-size: 13px; font-weight: 600; cursor: pointer;
-    font-family: 'Outfit', sans-serif; transition: all .18s; margin-top: 8px;
-  }
-  .draft-btn:hover { border-color: var(--ink20); background: var(--warm); color: var(--ink60); }
+  .step-panel { animation: fadeUp .22s ease both; }
 
-  /* ══ TOAST ══ */
-  .toast {
-    position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(20px);
-    background: var(--ink); border: 1px solid rgba(184,144,42,.3);
-    border-radius: 10px; padding: 12px 20px;
-    display: flex; align-items: center; gap: 11px;
-    box-shadow: var(--shadow-lg); z-index: 1000;
-    opacity: 0; pointer-events: none;
-    transition: all .3s cubic-bezier(.16,1,.3,1);
-    white-space: nowrap;
+  /* ── Section labels ── */
+  .field-section {
+    font-size: 9px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
+    color: var(--ink40); display: flex; align-items: center; gap: 10px;
+    margin-bottom: 14px; margin-top: 4px;
   }
-  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); pointer-events: auto; }
-  .toast-icon { font-size: 16px; }
-  .toast-msg  { font-size: 13px; font-weight: 600; color: #F6F3EC; }
-  .toast-sub  { font-size: 11.5px; color: rgba(246,243,236,.4); margin-left: 4px; }
+  .field-section::after { content:''; flex:1; height:1px; background:var(--ink10); }
 
-  /* ══ RESPONSIVE ══ */
-  @media (max-width: 1100px) {
-    .form-grid { grid-template-columns: 1fr; }
-    .summary-card { position: static; }
+  /* ── Grid layouts ── */
+  .field-row   { display: grid; gap: 14px; margin-bottom: 14px; }
+  .col-2 { grid-template-columns: 1fr 1fr; }
+  .col-3 { grid-template-columns: 1fr 1fr 1fr; }
+  .col-1-2 { grid-template-columns: 1fr 2fr; }
+  .col-2-1 { grid-template-columns: 2fr 1fr; }
+
+  /* ── Field ── */
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  .field-label {
+    font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;
+    color: var(--ink50); display: flex; align-items: center; gap: 6px;
   }
-  @media (max-width: 720px) {
-    .field-row-2, .field-row-3 { grid-template-columns: 1fr; }
-    .content { padding: 16px; }
-    .status-grid { grid-template-columns: 1fr 1fr; }
-    .variant-head, .variant-row { grid-template-columns: 1fr 80px 80px 64px 36px; }
+  .field-required { color: var(--red); font-size: 12px; line-height: 1; }
+  .field-hint { font-size: 10.5px; color: var(--ink30); font-weight: 400; letter-spacing: 0; text-transform: none; margin-top: -2px; }
+
+  .field-input, .field-select, .field-textarea {
+    padding: 10px 14px;
+    background: var(--paper); border: 1.5px solid var(--ink10);
+    border-radius: 8px; font-family: 'Outfit', sans-serif;
+    font-size: 13px; font-weight: 500; color: var(--ink);
+    outline: none; transition: all .18s; width: 100%;
   }
+  .field-input::placeholder, .field-textarea::placeholder { color: var(--ink20); }
+  .field-input:hover, .field-select:hover, .field-textarea:hover { border-color: var(--ink20); background: #fff; }
+  .field-input:focus, .field-select:focus, .field-textarea:focus {
+    border-color: var(--gold); background: #fff;
+    box-shadow: 0 0 0 3px rgba(184,144,42,.1);
+  }
+  .field-input.error, .field-select.error { border-color: var(--red); box-shadow: 0 0 0 3px rgba(181,55,42,.1); }
+  .field-input.error:focus { border-color: var(--red); }
+  .field-error { font-size: 10.5px; color: var(--red); font-weight: 600; margin-top: -2px; display: flex; align-items: center; gap: 4px; }
+
+  .field-select { appearance: none; cursor: pointer; padding-right: 34px; }
+  .select-wrap { position: relative; }
+  .select-arrow { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); font-size: 9px; color: var(--ink30); pointer-events: none; }
+
+  .field-textarea { resize: vertical; min-height: 90px; line-height: 1.6; }
+
+  .field-mono {
+    font-family: 'Geist Mono', monospace !important;
+    font-size: 12.5px !important; letter-spacing: .3px;
+  }
+
+  /* ── Price input with prefix ── */
+  .input-prefix-wrap { position: relative; }
+  .input-prefix {
+    position: absolute; left: 0; top: 0; bottom: 0; width: 36px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 700; color: var(--ink40);
+    border-right: 1.5px solid var(--ink10); pointer-events: none;
+    transition: border-color .18s;
+  }
+  .input-prefix-wrap:focus-within .input-prefix { border-color: var(--gold); color: var(--gold); }
+  .input-prefix-wrap .field-input { padding-left: 46px; }
+
+  /* ── Margin badge ── */
+  .margin-badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 4px 10px; border-radius: 20px;
+    font-size: 11px; font-weight: 700;
+    font-family: 'Geist Mono', monospace;
+    transition: all .3s;
+  }
+
+  /* ── Toggle / checkbox ── */
+  .toggle-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 14px; background: var(--paper); border: 1.5px solid var(--ink10);
+    border-radius: 8px; cursor: pointer; transition: all .15s;
+  }
+  .toggle-row:hover { border-color: var(--ink20); background: #fff; }
+  .toggle-row.checked { border-color: var(--goldbr); background: var(--goldbg); }
+  .toggle-label { font-size: 13px; font-weight: 600; color: var(--ink60); }
+  .toggle-desc  { font-size: 11px; color: var(--ink40); margin-top: 1px; }
+  .toggle-switch {
+    width: 38px; height: 22px; border-radius: 11px;
+    background: var(--ink10); position: relative; flex-shrink: 0;
+    transition: background .2s;
+  }
+  .toggle-switch.on { background: var(--gold); }
+  .toggle-knob {
+    position: absolute; top: 3px; left: 3px;
+    width: 16px; height: 16px; border-radius: 50%;
+    background: #fff; box-shadow: 0 1px 4px rgba(27,23,19,.2);
+    transition: transform .2s cubic-bezier(.16,1,.3,1);
+  }
+  .toggle-switch.on .toggle-knob { transform: translateX(16px); }
+
+  /* ── Icon picker ── */
+  .icon-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(44px, 1fr)); gap: 6px;
+  }
+  .icon-option {
+    width: 44px; height: 44px; border-radius: 8px; font-size: 22px;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--paper); border: 1.5px solid var(--ink10);
+    cursor: pointer; transition: all .14s;
+  }
+  .icon-option:hover { border-color: var(--ink20); background: var(--warm); transform: scale(1.05); }
+  .icon-option.selected { border-color: var(--gold); background: var(--goldbg); box-shadow: 0 0 0 2px var(--gold); }
+
+  /* ── Tag input ── */
+  .tag-input-row { display: flex; gap: 8px; }
+  .tag-list { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .tag-chip {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 4px 10px; border-radius: 20px;
+    background: var(--goldbg); border: 1px solid var(--goldbr);
+    color: var(--gold); font-size: 11.5px; font-weight: 700;
+  }
+  .tag-remove { background: none; border: none; cursor: pointer; color: var(--gold); opacity: .6; font-size: 14px; line-height: 1; padding: 0; transition: opacity .14s; }
+  .tag-remove:hover { opacity: 1; }
+
+  /* ── Summary card ── */
+  .summary-card {
+    background: var(--paper); border: 1px solid var(--ink10);
+    border-radius: 10px; overflow: hidden; margin-bottom: 16px;
+  }
+  .summary-head {
+    background: var(--ink); padding: 14px 18px;
+    display: flex; align-items: center; gap: 14px;
+    border-bottom: 1px solid rgba(184,144,42,.2);
+  }
+  .summary-icon {
+    width: 48px; height: 48px; border-radius: 10px;
+    background: rgba(246,243,236,.06); border: 1px solid rgba(246,243,236,.1);
+    display: flex; align-items: center; justify-content: center; font-size: 26px; flex-shrink: 0;
+  }
+  .summary-name { font-family: 'Cormorant Garamond', serif; font-size: 19px; font-weight: 600; color: #F6F3EC; line-height: 1.2; margin-bottom: 3px; }
+  .summary-sku  { font-family: 'Geist Mono', monospace; font-size: 11px; color: var(--goldl); }
+  .summary-body { padding: 16px 18px; }
+  .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
+  .summary-row {
+    display: flex; align-items: center; justify-content: space-between; gap: 8px;
+    padding: 7px 0; border-bottom: 1px solid var(--ink03);
+  }
+  .summary-row:last-child { border-bottom: none; }
+  .summary-label { font-size: 11.5px; color: var(--ink40); font-weight: 500; }
+  .summary-value { font-size: 12.5px; font-weight: 700; color: var(--ink); font-family: 'Geist Mono', monospace; }
+
+  /* ── Footer ── */
+  .modal-footer {
+    padding: 16px 26px; border-top: 1px solid var(--ink10);
+    background: var(--paper); flex-shrink: 0;
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  }
+  .footer-left  { display: flex; gap: 8px; }
+  .footer-right { display: flex; gap: 8px; }
+
+  .m-btn {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 10px 20px; border-radius: 7px;
+    font-size: 13px; font-weight: 700; cursor: pointer;
+    font-family: 'Outfit', sans-serif; letter-spacing: .2px;
+    border: 1px solid transparent; transition: all .2s;
+  }
+  .m-btn-ghost { background: transparent; border-color: var(--ink10); color: var(--ink50); }
+  .m-btn-ghost:hover { border-color: var(--ink20); color: var(--ink60); background: var(--warm); }
+  .m-btn-outline { background: transparent; border-color: var(--goldbr); color: var(--gold); }
+  .m-btn-outline:hover { background: var(--goldbg); border-color: var(--gold); }
+  .m-btn-gold {
+    background: var(--gold); border-color: var(--goldd); color: #fff;
+    box-shadow: 0 2px 10px rgba(184,144,42,.3);
+  }
+  .m-btn-gold:hover { background: var(--goldl); box-shadow: 0 4px 16px rgba(184,144,42,.4); transform: translateY(-1px); }
+  .m-btn-gold:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+  .m-btn-green { background: var(--green); border-color: #1e4d38; color: #fff; box-shadow: 0 2px 10px rgba(45,106,79,.25); }
+  .m-btn-green:hover { background: var(--greenl); box-shadow: 0 4px 16px rgba(45,106,79,.35); transform: translateY(-1px); }
+
+  /* ── Step progress dots ── */
+  .step-dots { display: flex; align-items: center; gap: 6px; }
+  .step-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--ink10); transition: all .2s;
+  }
+  .step-dot.active { background: var(--gold); width: 18px; border-radius: 3px; }
+  .step-dot.done   { background: var(--green); }
+
+  /* ── Shake animation for validation ── */
+  .shake { animation: shake .35s ease; }
 `;
 
-const CATEGORIES = ["Electronics", "Apparel", "Accessories", "Home", "Lifestyle", "Stationery", "Sports", "Beauty", "Toys", "Food & Drink"];
-const BRANDS     = ["Nexus", "OEM", "Generic", "Apple", "Samsung", "Sony", "Logitech", "Anker", "Custom"];
-const SUPPLIERS  = ["Global Imports Ltd", "TechDist Co.", "FabricWorld", "HomeGoods Inc.", "DirectSource"];
-const UNITS      = ["piece", "pair", "set", "box", "kg", "litre", "metre"];
-const TAX_RATES  = ["0%", "5%", "10%", "15%", "20%"];
+const STEPS = [
+  { id: 0, label: "Basic Info",  icon: "📋" },
+  { id: 1, label: "Pricing",     icon: "💰" },
+  { id: 2, label: "Inventory",   icon: "📦" },
+  { id: 3, label: "Details",     icon: "🏷" },
+  { id: 4, label: "Review",      icon: "✓"  },
+];
 
-export default function AddProduct() {
-  // Core fields
-  const [name,        setName]        = useState("");
-  const [sku,         setSku]         = useState("");
-  const [skuAuto,     setSkuAuto]     = useState(true);
-  const [category,    setCategory]    = useState("");
-  const [brand,       setBrand]       = useState("");
-  const [description, setDescription] = useState("");
-  const [barcode,     setBarcode]     = useState("");
+const DEFAULT_FORM = {
+  name: "", sku: "", barcode: "", category: "", brand: "", status: "active",
+  description: "", icon: "📦",
+  price: "", cost: "", featured: false,
+  stock: "", minStock: "", location: "", supplier: "",
+  tags: [], tagInput: "",
+};
 
-  // Pricing
-  const [price,       setPrice]       = useState("");
-  const [costPrice,   setCostPrice]   = useState("");
-  const [compareAt,   setCompareAt]   = useState("");
-  const [taxRate,     setTaxRate]     = useState("10%");
+function genSKU(name, category) {
+  if (!name || !category) return "";
+  const prefix = category.slice(0, 2).toUpperCase();
+  const suffix = name.replace(/\s+/g, "").slice(0, 2).toUpperCase();
+  const num    = Math.floor(100 + Math.random() * 900);
+  return `${prefix}${suffix}-${num}`;
+}
 
-  // Inventory
-  const [stock,       setStock]       = useState("");
-  const [minStock,    setMinStock]    = useState("");
-  const [unit,        setUnit]        = useState("piece");
-  const [supplier,    setSupplier]    = useState("");
-  const [location,    setLocation]    = useState("");
+function genBarcode() {
+  return "890" + Array.from({length: 10}, () => Math.floor(Math.random() * 10)).join("");
+}
 
-  // Flags
-  const [trackStock,  setTrackStock]  = useState(true);
-  const [taxable,     setTaxable]     = useState(true);
-  const [featured,    setFeatured]    = useState(false);
-  const [allowNeg,    setAllowNeg]    = useState(false);
-  const [status,      setStatus]      = useState("active");
+export default function AddProductModal({ onClose, onSave }) {
+  const [step,   setStep]   = useState(0);
+  const [form,   setForm]   = useState(DEFAULT_FORM);
+  const [errors, setErrors] = useState({});
+  const [shake,  setShake]  = useState(false);
+  const firstInputRef = useRef();
 
-  // Tags & images
-  const [tags,        setTags]        = useState([]);
-  const [tagInput,    setTagInput]    = useState("");
-  const [images,      setImages]      = useState([]);
-  const [dragOver,    setDragOver]    = useState(false);
+  // Auto-focus first input on mount
+  useEffect(() => {
+    setTimeout(() => firstInputRef.current?.focus(), 80);
+  }, []);
 
-  // Variants
-  const [hasVariants, setHasVariants] = useState(false);
-  const [variants,    setVariants]    = useState([
-    { id: 1, name: "Default", sku: "", price: "", stock: "" },
-  ]);
+  // Close on Escape
+  useEffect(() => {
+    const h = e => { if (e.key === "Escape") onClose(); };
+    window.addEventListener("keydown", h);
+    return () => window.removeEventListener("keydown", h);
+  }, [onClose]);
 
-  // UI
-  const [errors,      setErrors]      = useState({});
-  const [toast,       setToast]       = useState({ show: false, msg: "", sub: "" });
-  const fileInputRef  = useRef();
+  const set = (key, val) => {
+    setForm(f => ({ ...f, [key]: val }));
+    if (errors[key]) setErrors(e => ({ ...e, [key]: null }));
+  };
 
-  // ── Derived ──
-  const autoSku = name
-    ? (category ? category.slice(0, 3).toUpperCase() : "PRD") + "-" +
-      name.replace(/[^a-zA-Z0-9]/g, "").toUpperCase().slice(0, 4) +
-      "-" + String(Math.floor(Math.random() * 900 + 100))
-    : "";
-
-  const displaySku = skuAuto ? autoSku : sku;
-
-  const margin = price && costPrice
-    ? (((parseFloat(price) - parseFloat(costPrice)) / parseFloat(price)) * 100).toFixed(1)
+  const margin = form.price && form.cost
+    ? (((parseFloat(form.price) - parseFloat(form.cost)) / parseFloat(form.price)) * 100).toFixed(1)
     : null;
 
-  // ── Handlers ──
-  const handleTagKey = (e) => {
-    if ((e.key === "Enter" || e.key === ",") && tagInput.trim()) {
-      e.preventDefault();
-      if (!tags.includes(tagInput.trim())) setTags(t => [...t, tagInput.trim()]);
-      setTagInput("");
-    }
-    if (e.key === "Backspace" && !tagInput && tags.length) {
-      setTags(t => t.slice(0, -1));
-    }
-  };
-
-  const handleFiles = useCallback((files) => {
-    const allowed = Array.from(files).filter(f => f.type.startsWith("image/")).slice(0, 6 - images.length);
-    allowed.forEach(f => {
-      const reader = new FileReader();
-      reader.onload = (e) => setImages(prev => [...prev, { url: e.target.result, name: f.name }]);
-      reader.readAsDataURL(f);
-    });
-  }, [images]);
-
-  const handleDrop = (e) => {
-    e.preventDefault(); setDragOver(false);
-    handleFiles(e.dataTransfer.files);
-  };
-
-  const addVariant = () => setVariants(v => [...v, { id: Date.now(), name: "", sku: "", price: "", stock: "" }]);
-  const delVariant = (id) => setVariants(v => v.filter(r => r.id !== id));
-  const updateVariant = (id, field, val) => setVariants(v => v.map(r => r.id === id ? { ...r, [field]: val } : r));
-
-  const showToast = (msg, sub = "") => {
-    setToast({ show: true, msg, sub });
-    setTimeout(() => setToast({ show: false, msg: "", sub: "" }), 3200);
-  };
-
-  const validate = () => {
+  const validateStep = (s) => {
     const e = {};
-    if (!name.trim())     e.name     = "Product name is required";
-    if (!category)        e.category = "Please select a category";
-    if (!price)           e.price    = "Selling price is required";
-    if (price && isNaN(parseFloat(price))) e.price = "Must be a valid number";
-    setErrors(e);
-    return Object.keys(e).length === 0;
+    if (s === 0) {
+      if (!form.name.trim())     e.name     = "Product name is required";
+      if (!form.category)        e.category = "Please select a category";
+      if (!form.sku.trim())      e.sku      = "SKU is required";
+    }
+    if (s === 1) {
+      if (!form.price || isNaN(form.price) || +form.price <= 0) e.price = "Enter a valid selling price";
+      if (!form.cost  || isNaN(form.cost)  || +form.cost  <= 0) e.cost  = "Enter a valid cost price";
+      if (+form.cost >= +form.price) e.cost = "Cost must be less than selling price";
+    }
+    if (s === 2) {
+      if (form.stock === "" || isNaN(form.stock) || +form.stock < 0) e.stock    = "Enter a valid stock quantity";
+      if (!form.minStock || isNaN(form.minStock) || +form.minStock < 0) e.minStock = "Enter a reorder point";
+    }
+    return e;
   };
 
-  const handleSubmit = () => {
-    if (!validate()) { showToast("Please fix the errors", "Check required fields"); return; }
-    showToast("Product saved!", `${name} · ${displaySku || "No SKU"}`);
+  const nextStep = () => {
+    const e = validateStep(step);
+    if (Object.keys(e).length) {
+      setErrors(e);
+      setShake(true);
+      setTimeout(() => setShake(false), 400);
+      return;
+    }
+    setStep(s => s + 1);
   };
 
-  const handleDraft = () => {
-    showToast("Saved as draft", "You can continue editing later");
+  const prevStep = () => setStep(s => s - 1);
+
+  const addTag = () => {
+    const t = form.tagInput.trim().toLowerCase().replace(/\s+/g, "-");
+    if (t && !form.tags.includes(t)) set("tags", [...form.tags, t]);
+    set("tagInput", "");
   };
 
-  // ── Completion steps ──
-  const steps = [
-    { label: "Basic info",     done: !!(name && category) },
-    { label: "Pricing",        done: !!(price) },
-    { label: "Inventory",      done: !!(stock) },
-    { label: "Images",         done: images.length > 0 },
-    { label: "Tags & details", done: tags.length > 0 || !!description },
-  ];
-  const completedCount = steps.filter(s => s.done).length;
+  const removeTag = (t) => set("tags", form.tags.filter(x => x !== t));
+
+  const autoFillSKU  = () => set("sku",     genSKU(form.name, form.category));
+  const autoFillBarcode = () => set("barcode", genBarcode());
+
+  const handleSave = () => {
+    const newProduct = {
+      id: Date.now(),
+      name:        form.name.trim(),
+      sku:         form.sku.trim(),
+      barcode:     form.barcode || genBarcode(),
+      category:    form.category,
+      brand:       form.brand || "Generic",
+      price:       parseFloat(form.price),
+      cost:        parseFloat(form.cost),
+      stock:       parseInt(form.stock, 10),
+      minStock:    parseInt(form.minStock, 10),
+      status:      form.status,
+      featured:    form.featured,
+      description: form.description.trim(),
+      images:      [form.icon],
+      supplier:    form.supplier || "—",
+      location:    form.location || "—",
+      tags:        form.tags,
+      sold:        0,
+      trend:       0,
+    };
+    onSave?.(newProduct);
+    onClose();
+  };
+
+  // ── Render step content ──────────────────────────────────────────────────
+  const renderStep = () => {
+    switch (step) {
+
+      // ── STEP 0: Basic Info ──
+      case 0: return (
+        <div className="step-panel">
+          <div className="field-section">Product Identity</div>
+
+          {/* Icon picker */}
+          <div className="field" style={{ marginBottom: 16 }}>
+            <div className="field-label">Product Icon</div>
+            <div className="icon-grid">
+              {EMOJI_ICONS.map(ico => (
+                <button key={ico} className={`icon-option${form.icon === ico ? " selected" : ""}`}
+                  onClick={() => set("icon", ico)} type="button">{ico}</button>
+              ))}
+            </div>
+          </div>
+
+          {/* Name */}
+          <div className="field-row" style={{ marginBottom: 14 }}>
+            <div className="field">
+              <label className="field-label">
+                Product Name <span className="field-required">*</span>
+              </label>
+              <input
+                ref={firstInputRef}
+                className={`field-input${errors.name ? " error" : ""}`}
+                placeholder="e.g. Wireless Earbuds Pro"
+                value={form.name}
+                onChange={e => set("name", e.target.value)}
+              />
+              {errors.name && <span className="field-error">⚠ {errors.name}</span>}
+            </div>
+          </div>
+
+          {/* SKU + Barcode */}
+          <div className="field-row col-2">
+            <div className="field">
+              <label className="field-label">
+                SKU <span className="field-required">*</span>
+                <span className="field-hint">· <button type="button" onClick={autoFillSKU} style={{ background:"none",border:"none",color:"var(--gold)",cursor:"pointer",fontSize:10,fontWeight:700,padding:0 }}>Auto-generate</button></span>
+              </label>
+              <input
+                className={`field-input field-mono${errors.sku ? " error" : ""}`}
+                placeholder="e.g. WEP-221"
+                value={form.sku}
+                onChange={e => set("sku", e.target.value.toUpperCase())}
+              />
+              {errors.sku && <span className="field-error">⚠ {errors.sku}</span>}
+            </div>
+            <div className="field">
+              <label className="field-label">
+                Barcode
+                <span className="field-hint">· <button type="button" onClick={autoFillBarcode} style={{ background:"none",border:"none",color:"var(--gold)",cursor:"pointer",fontSize:10,fontWeight:700,padding:0 }}>Auto-generate</button></span>
+              </label>
+              <input
+                className="field-input field-mono"
+                placeholder="e.g. 8901234567890"
+                value={form.barcode}
+                onChange={e => set("barcode", e.target.value)}
+              />
+            </div>
+          </div>
+
+          {/* Category + Brand */}
+          <div className="field-row col-2">
+            <div className="field">
+              <label className="field-label">Category <span className="field-required">*</span></label>
+              <div className="select-wrap">
+                <select className={`field-select${errors.category ? " error" : ""}`}
+                  value={form.category} onChange={e => set("category", e.target.value)}>
+                  <option value="">Select category…</option>
+                  {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                </select>
+                <span className="select-arrow">▾</span>
+              </div>
+              {errors.category && <span className="field-error">⚠ {errors.category}</span>}
+            </div>
+            <div className="field">
+              <label className="field-label">Brand</label>
+              <div className="select-wrap">
+                <select className="field-select" value={form.brand} onChange={e => set("brand", e.target.value)}>
+                  <option value="">Select brand…</option>
+                  {BRANDS.map(b => <option key={b} value={b}>{b}</option>)}
+                </select>
+                <span className="select-arrow">▾</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Status */}
+          <div className="field-row col-2">
+            <div className="field">
+              <label className="field-label">Status</label>
+              <div className="select-wrap">
+                <select className="field-select" value={form.status} onChange={e => set("status", e.target.value)}>
+                  {STATUS_OPTIONS.map(s => <option key={s} value={s} style={{ textTransform:"capitalize" }}>{s.charAt(0).toUpperCase()+s.slice(1)}</option>)}
+                </select>
+                <span className="select-arrow">▾</span>
+              </div>
+            </div>
+            <div className="field" style={{ justifyContent:"flex-end" }}>
+              <label className="field-label">Featured</label>
+              <div className={`toggle-row${form.featured ? " checked" : ""}`} onClick={() => set("featured", !form.featured)}>
+                <div>
+                  <div className="toggle-label">Mark as featured</div>
+                  <div className="toggle-desc">Highlighted in POS &amp; storefront</div>
+                </div>
+                <div className={`toggle-switch${form.featured ? " on" : ""}`}>
+                  <div className="toggle-knob" />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Description */}
+          <div className="field-section" style={{ marginTop: 8 }}>Description</div>
+          <div className="field">
+            <label className="field-label">Product Description</label>
+            <textarea
+              className="field-input field-textarea"
+              placeholder="Describe this product — features, materials, dimensions…"
+              value={form.description}
+              onChange={e => set("description", e.target.value)}
+            />
+          </div>
+        </div>
+      );
+
+      // ── STEP 1: Pricing ──
+      case 1: return (
+        <div className="step-panel">
+          <div className="field-section">Pricing</div>
+
+          <div className="field-row col-2">
+            <div className="field">
+              <label className="field-label">Selling Price <span className="field-required">*</span></label>
+              <div className="input-prefix-wrap">
+                <span className="input-prefix">$</span>
+                <input
+                  className={`field-input field-mono${errors.price ? " error" : ""}`}
+                  type="number" min="0" step="0.01" placeholder="0.00"
+                  value={form.price}
+                  onChange={e => set("price", e.target.value)}
+                />
+              </div>
+              {errors.price && <span className="field-error">⚠ {errors.price}</span>}
+            </div>
+            <div className="field">
+              <label className="field-label">Cost Price <span className="field-required">*</span></label>
+              <div className="input-prefix-wrap">
+                <span className="input-prefix">$</span>
+                <input
+                  className={`field-input field-mono${errors.cost ? " error" : ""}`}
+                  type="number" min="0" step="0.01" placeholder="0.00"
+                  value={form.cost}
+                  onChange={e => set("cost", e.target.value)}
+                />
+              </div>
+              {errors.cost && <span className="field-error">⚠ {errors.cost}</span>}
+            </div>
+          </div>
+
+          {/* Live margin display */}
+          {margin !== null && (
+            <div style={{
+              background: "var(--paper)", border: "1px solid var(--ink10)",
+              borderRadius: 10, padding: "16px 18px", marginBottom: 14,
+              display: "flex", alignItems: "center", justifyContent: "space-between",
+              animation: "fadeUp .2s ease",
+            }}>
+              <div>
+                <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: "var(--ink40)", marginBottom: 4 }}>Live Margin Calculator</div>
+                <div style={{ display: "flex", gap: 20, alignItems: "center" }}>
+                  <div>
+                    <div style={{ fontSize: 10, color: "var(--ink40)", marginBottom: 2 }}>Profit / unit</div>
+                    <div style={{ fontFamily: "'Geist Mono',monospace", fontSize: 18, fontWeight: 700, color: "var(--ink)" }}>
+                      ${(parseFloat(form.price || 0) - parseFloat(form.cost || 0)).toFixed(2)}
+                    </div>
+                  </div>
+                  <div style={{ width: 1, height: 32, background: "var(--ink10)" }} />
+                  <div>
+                    <div style={{ fontSize: 10, color: "var(--ink40)", marginBottom: 2 }}>Gross margin</div>
+                    <span className="margin-badge" style={{
+                      background: parseFloat(margin) >= 30 ? "var(--greenbg)" : parseFloat(margin) >= 15 ? "var(--goldbg)" : "var(--redbg)",
+                      border: `1px solid ${parseFloat(margin) >= 30 ? "var(--greenbr)" : parseFloat(margin) >= 15 ? "var(--goldbr)" : "var(--redbr)"}`,
+                      color: parseFloat(margin) >= 30 ? "var(--green)" : parseFloat(margin) >= 15 ? "var(--gold)" : "var(--red)",
+                      fontSize: 16,
+                    }}>
+                      {margin}%
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <div style={{ textAlign: "right" }}>
+                <div style={{ fontSize: 10, color: "var(--ink40)", marginBottom: 4 }}>Status</div>
+                <div style={{ fontSize: 12, fontWeight: 700, color: parseFloat(margin) >= 30 ? "var(--green)" : parseFloat(margin) >= 15 ? "var(--gold)" : "var(--red)" }}>
+                  {parseFloat(margin) >= 30 ? "✓ Excellent" : parseFloat(margin) >= 15 ? "◉ Acceptable" : "⚠ Review pricing"}
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div className="field-section" style={{ marginTop: 8 }}>Markup guide</div>
+          <div style={{
+            display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginBottom: 4,
+          }}>
+            {[
+              { label: "Below 15%", note: "Review pricing",  color: "var(--red)",   bg: "var(--redbg)",   br: "var(--redbr)"   },
+              { label: "15–30%",    note: "Acceptable",      color: "var(--gold)",  bg: "var(--goldbg)",  br: "var(--goldbr)"  },
+              { label: "Above 30%", note: "Excellent",       color: "var(--green)", bg: "var(--greenbg)", br: "var(--greenbr)" },
+            ].map(g => (
+              <div key={g.label} style={{ padding: "10px 12px", borderRadius: 8, background: g.bg, border: `1px solid ${g.br}`, textAlign: "center" }}>
+                <div style={{ fontFamily: "'Geist Mono',monospace", fontSize: 12, fontWeight: 700, color: g.color }}>{g.label}</div>
+                <div style={{ fontSize: 10, color: g.color, opacity: .8, marginTop: 2 }}>{g.note}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+
+      // ── STEP 2: Inventory ──
+      case 2: return (
+        <div className="step-panel">
+          <div className="field-section">Stock Levels</div>
+
+          <div className="field-row col-2">
+            <div className="field">
+              <label className="field-label">Opening Stock <span className="field-required">*</span></label>
+              <input
+                className={`field-input field-mono${errors.stock ? " error" : ""}`}
+                type="number" min="0" step="1" placeholder="0"
+                value={form.stock}
+                onChange={e => set("stock", e.target.value)}
+              />
+              {errors.stock && <span className="field-error">⚠ {errors.stock}</span>}
+            </div>
+            <div className="field">
+              <label className="field-label">Reorder Point <span className="field-required">*</span></label>
+              <input
+                className={`field-input field-mono${errors.minStock ? " error" : ""}`}
+                type="number" min="0" step="1" placeholder="10"
+                value={form.minStock}
+                onChange={e => set("minStock", e.target.value)}
+              />
+              {errors.minStock && <span className="field-error">⚠ {errors.minStock}</span>}
+              <span className="field-hint" style={{ marginTop: 2 }}>Alert when stock falls below this</span>
+            </div>
+          </div>
+
+          {/* Stock health preview */}
+          {form.stock !== "" && form.minStock !== "" && (
+            <div style={{
+              background: "var(--paper)", border: "1px solid var(--ink10)",
+              borderRadius: 10, padding: "14px 18px", marginBottom: 14,
+              animation: "fadeUp .2s ease",
+            }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                <span style={{ fontSize: 11, fontWeight: 600, color: "var(--ink50)" }}>Stock Health Preview</span>
+                <span style={{
+                  fontFamily: "'Geist Mono',monospace", fontSize: 20, fontWeight: 700,
+                  color: +form.stock === 0 ? "var(--red)" : +form.stock <= +form.minStock ? "var(--gold)" : "var(--green)",
+                }}>{form.stock}</span>
+              </div>
+              <div style={{ height: 6, background: "var(--ink10)", borderRadius: 4, overflow: "hidden" }}>
+                <div style={{
+                  height: "100%", borderRadius: 4,
+                  width: `${Math.min((+form.stock / Math.max(+form.minStock * 3, 1)) * 100, 100)}%`,
+                  background: +form.stock === 0 ? "var(--red)"
+                    : +form.stock <= +form.minStock
+                    ? "linear-gradient(90deg,var(--gold),var(--goldl))"
+                    : "linear-gradient(90deg,var(--green),var(--greenl))",
+                  transition: "width .5s cubic-bezier(.16,1,.3,1)",
+                }} />
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: "var(--ink30)", fontFamily: "'Geist Mono',monospace", marginTop: 5 }}>
+                <span>0</span>
+                <span>Reorder: {form.minStock}</span>
+                <span>{+form.minStock * 3}</span>
+              </div>
+              <div style={{ marginTop: 8, fontSize: 12, fontWeight: 700, color: +form.stock === 0 ? "var(--red)" : +form.stock <= +form.minStock ? "var(--gold)" : "var(--green)" }}>
+                {+form.stock === 0 ? "⚠ Out of stock from day one" : +form.stock <= +form.minStock ? "⚠ Opening stock is below reorder point" : "✓ Healthy opening stock"}
+              </div>
+            </div>
+          )}
+
+          <div className="field-section" style={{ marginTop: 8 }}>Location &amp; Supplier</div>
+
+          <div className="field-row col-2">
+            <div className="field">
+              <label className="field-label">Shelf Location</label>
+              <div className="select-wrap">
+                <select className="field-select" value={form.location} onChange={e => set("location", e.target.value)}>
+                  <option value="">Select location…</option>
+                  {LOCATIONS.map(l => <option key={l} value={l}>{l}</option>)}
+                </select>
+                <span className="select-arrow">▾</span>
+              </div>
+            </div>
+            <div className="field">
+              <label className="field-label">Supplier</label>
+              <div className="select-wrap">
+                <select className="field-select" value={form.supplier} onChange={e => set("supplier", e.target.value)}>
+                  <option value="">Select supplier…</option>
+                  {SUPPLIERS.map(s => <option key={s} value={s}>{s}</option>)}
+                </select>
+                <span className="select-arrow">▾</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+
+      // ── STEP 3: Details / Tags ──
+      case 3: return (
+        <div className="step-panel">
+          <div className="field-section">Tags</div>
+          <div className="field" style={{ marginBottom: 16 }}>
+            <label className="field-label">Product Tags</label>
+            <div className="tag-input-row">
+              <input
+                className="field-input"
+                placeholder="Add tag and press Enter…"
+                value={form.tagInput}
+                onChange={e => set("tagInput", e.target.value)}
+                onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); addTag(); } }}
+                style={{ flex: 1 }}
+              />
+              <button type="button" className="m-btn m-btn-outline" onClick={addTag}
+                style={{ padding: "10px 16px", whiteSpace: "nowrap" }}>+ Add</button>
+            </div>
+            {form.tags.length > 0 && (
+              <div className="tag-list">
+                {form.tags.map(t => (
+                  <span className="tag-chip" key={t}>
+                    {t}
+                    <button className="tag-remove" onClick={() => removeTag(t)}>×</button>
+                  </span>
+                ))}
+              </div>
+            )}
+            <span className="field-hint" style={{ marginTop: 6 }}>Tags help with search and filtering in the POS</span>
+          </div>
+
+          <div className="field-section" style={{ marginTop: 8 }}>Quick Summary</div>
+          <div style={{ background: "var(--paper)", border: "1px solid var(--ink10)", borderRadius: 10, padding: "16px 18px" }}>
+            {[
+              { label: "Name",     val: form.name     || "—" },
+              { label: "SKU",      val: form.sku      || "—", mono: true, color: "var(--gold)" },
+              { label: "Category", val: form.category || "—" },
+              { label: "Price",    val: form.price    ? `$${parseFloat(form.price).toFixed(2)}` : "—", mono: true, color: "var(--green)" },
+              { label: "Stock",    val: form.stock    ? `${form.stock} units` : "—", mono: true },
+              { label: "Status",   val: form.status   || "—" },
+            ].map(r => (
+              <div key={r.label} style={{ display:"flex", justifyContent:"space-between", padding:"7px 0", borderBottom:"1px solid var(--ink03)" }}>
+                <span style={{ fontSize:11.5, color:"var(--ink40)", fontWeight:500 }}>{r.label}</span>
+                <span style={{ fontSize:12.5, fontWeight:700, color: r.color || "var(--ink)", fontFamily: r.mono ? "'Geist Mono',monospace" : "inherit" }}>{r.val}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+
+      // ── STEP 4: Review ──
+      case 4: return (
+        <div className="step-panel">
+          <div className="field-section">Final Review</div>
+
+          {/* Summary card */}
+          <div className="summary-card">
+            <div className="summary-head">
+              <div className="summary-icon">{form.icon}</div>
+              <div style={{ minWidth: 0 }}>
+                <div className="summary-name">{form.name || "Unnamed Product"}</div>
+                <div className="summary-sku">{form.sku || "No SKU"}</div>
+              </div>
+              <div style={{ marginLeft: "auto" }}>
+                <span style={{
+                  padding: "4px 12px", borderRadius: 20, fontSize: 10.5, fontWeight: 700,
+                  background: form.status === "active" ? "var(--greenbg)" : form.status === "draft" ? "var(--goldbg)" : "var(--warm2)",
+                  color: form.status === "active" ? "var(--green)" : form.status === "draft" ? "var(--gold)" : "var(--ink40)",
+                  border: `1px solid ${form.status === "active" ? "var(--greenbr)" : form.status === "draft" ? "var(--goldbr)" : "var(--ink10)"}`,
+                }}>{form.status}</span>
+              </div>
+            </div>
+            <div className="summary-body">
+              <div className="summary-grid">
+                {[
+                  { label: "Category",      val: form.category  || "—" },
+                  { label: "Brand",         val: form.brand     || "—" },
+                  { label: "Selling Price", val: form.price     ? `$${parseFloat(form.price).toFixed(2)}` : "—" },
+                  { label: "Cost Price",    val: form.cost      ? `$${parseFloat(form.cost).toFixed(2)}`  : "—" },
+                  { label: "Gross Margin",  val: margin         ? `${margin}%` : "—" },
+                  { label: "Opening Stock", val: form.stock     ? `${form.stock} units` : "—" },
+                  { label: "Reorder Point", val: form.minStock  ? `${form.minStock} units` : "—" },
+                  { label: "Supplier",      val: form.supplier  || "—" },
+                  { label: "Location",      val: form.location  || "—" },
+                  { label: "Barcode",       val: form.barcode   || "—" },
+                ].map(r => (
+                  <div key={r.label} className="summary-row">
+                    <span className="summary-label">{r.label}</span>
+                    <span className="summary-value">{r.val}</span>
+                  </div>
+                ))}
+              </div>
+
+              {form.tags.length > 0 && (
+                <div style={{ marginTop: 12, paddingTop: 12, borderTop: "1px solid var(--ink06)" }}>
+                  <div style={{ fontSize: 10, color: "var(--ink40)", fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 7 }}>Tags</div>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
+                    {form.tags.map(t => (
+                      <span key={t} style={{ padding:"3px 9px", borderRadius:20, background:"var(--goldbg)", border:"1px solid var(--goldbr)", color:"var(--gold)", fontSize:11, fontWeight:700 }}>{t}</span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {form.description && (
+                <div style={{ marginTop: 12, padding: "12px 14px", background: "var(--warm)", borderRadius: 8, fontSize: 12.5, color: "var(--ink60)", lineHeight: 1.65 }}>
+                  {form.description}
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div style={{ padding: "12px 16px", background: "var(--greenbg)", border: "1px solid var(--greenbr)", borderRadius: 8, fontSize: 12.5, color: "var(--green)", fontWeight: 600, display: "flex", alignItems: "center", gap: 10 }}>
+            <span style={{ fontSize: 18 }}>✓</span>
+            Everything looks good! Click <strong>Save Product</strong> to add it to your catalogue.
+          </div>
+        </div>
+      );
+
+      default: return null;
+    }
+  };
 
   return (
     <>
-      <style>{STYLES}</style>
-      <div className="shell">
+      <style>{MODAL_CSS}</style>
+      <div className="modal-overlay" onClick={onClose}>
+        <div className={`modal-shell${shake ? " shake" : ""}`} onClick={e => e.stopPropagation()}>
 
-        {/* TOPBAR */}
-        <header className="topbar">
-          <div className="topbar-left">
-            <div className="brand">
-              <div className="brand-mark">N</div>
-              <div className="brand-text">
-                <div className="brand-name">Nexus POS</div>
-                <div className="brand-sub">Admin · Retail</div>
-              </div>
+          {/* ── Header ── */}
+          <div className="modal-head">
+            <div>
+              <div className="modal-eyebrow">Inventory Management</div>
+              <div className="modal-title">Add New Product</div>
+              <div className="modal-subtitle">Fill in the details below to create a new product listing</div>
             </div>
-            <div className="vdiv" />
-            <nav className="breadcrumb">
-              <span className="bc-link">Dashboard</span>
-              <span className="bc-sep">›</span>
-              <span className="bc-link">Inventory</span>
-              <span className="bc-sep">›</span>
-              <span className="bc-active">Add Product</span>
-            </nav>
+            <button className="modal-close-btn" onClick={onClose}>×</button>
           </div>
-          <div className="topbar-right">
-            <div className="vdiv" />
-            <div className="avatar">AD</div>
-          </div>
-        </header>
 
-        {/* CONTENT */}
-        <div className="content">
-
-          {/* PAGE HEADER */}
-          <div className="page-header">
-            <div className="page-title-block">
-              <div className="page-eyebrow">Inventory Management</div>
-              <div className="page-title">Add New Product</div>
-              <div className="page-desc">Fill in the details below to create a new product listing</div>
-            </div>
-            <div className="page-actions">
-              <button className="btn btn-ghost" onClick={handleDraft}>Save Draft</button>
-              <button className="btn btn-green" onClick={handleSubmit}>
-                <span>✓</span> Publish Product
+          {/* ── Step tabs ── */}
+          <div className="step-nav">
+            {STEPS.map(s => (
+              <button
+                key={s.id}
+                className={`step-tab${step === s.id ? " active" : ""}${step > s.id ? " done" : ""}`}
+                onClick={() => { if (s.id < step) setStep(s.id); }}
+                type="button"
+              >
+                <span className="step-num">{step > s.id ? "✓" : s.id + 1}</span>
+                {s.label}
               </button>
+            ))}
+          </div>
+
+          {/* ── Body ── */}
+          <div className="modal-body">
+            {renderStep()}
+          </div>
+
+          {/* ── Footer ── */}
+          <div className="modal-footer">
+            <div className="footer-left">
+              {/* Step dots */}
+              <div className="step-dots">
+                {STEPS.map(s => (
+                  <div key={s.id} className={`step-dot${step === s.id ? " active" : ""}${step > s.id ? " done" : ""}`} />
+                ))}
+              </div>
+            </div>
+            <div className="footer-right">
+              <button className="m-btn m-btn-ghost" onClick={onClose} type="button">Cancel</button>
+              {step > 0 && (
+                <button className="m-btn m-btn-outline" onClick={prevStep} type="button">← Back</button>
+              )}
+              {step < STEPS.length - 1 ? (
+                <button className="m-btn m-btn-gold" onClick={nextStep} type="button">
+                  Continue →
+                </button>
+              ) : (
+                <button className="m-btn m-btn-green" onClick={handleSave} type="button">
+                  ✓ Save Product
+                </button>
+              )}
             </div>
           </div>
 
-          {/* FORM */}
-          <div className="form-grid">
-
-            {/* LEFT COLUMN */}
-            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-
-              {/* ── Basic Information ── */}
-              <div className="card" style={{ animationDelay: "60ms" }}>
-                <div className="card-header">
-                  <div className="card-header-icon" style={{ background: "var(--goldbg)", border: "1px solid var(--goldbr)" }}>
-                    <span style={{ fontSize: 16 }}>📦</span>
-                  </div>
-                  <div>
-                    <div className="card-title">Basic Information</div>
-                    <div className="card-sub">Product identity &amp; classification</div>
-                  </div>
-                </div>
-                <div className="card-body">
-
-                  {/* Name */}
-                  <div className="field">
-                    <label className="label">
-                      Product Name <span className="label-req">*</span>
-                    </label>
-                    <input
-                      className={`input ${errors.name ? "error" : ""}`}
-                      placeholder="e.g. Wireless Earbuds Pro"
-                      value={name}
-                      onChange={e => { setName(e.target.value); setErrors(p => ({ ...p, name: null })); }}
-                    />
-                    {errors.name && <span className="field-error">⚠ {errors.name}</span>}
-                  </div>
-
-                  {/* SKU */}
-                  <div className="field">
-                    <label className="label">
-                      SKU
-                      <span className="label-hint">
-                        {skuAuto ? "— auto-generated" : "— manual entry"}
-                      </span>
-                    </label>
-                    <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                      {skuAuto
-                        ? <div className="sku-preview" style={{ flex: 1 }}>
-                            <span className="sku-preview-label">SKU</span>
-                            <span className="sku-preview-value">{autoSku || "—"}</span>
-                          </div>
-                        : <input className="input" placeholder="e.g. WEP-221" value={sku} onChange={e => setSku(e.target.value)} style={{ flex: 1, fontFamily: "'Geist Mono', monospace", fontSize: 13 }} />
-                      }
-                      <button
-                        className="btn btn-ghost"
-                        style={{ padding: "9px 14px", fontSize: 12, flexShrink: 0 }}
-                        onClick={() => setSkuAuto(v => !v)}
-                      >
-                        {skuAuto ? "Manual" : "Auto"}
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Category + Brand */}
-                  <div className="field-row field-row-2">
-                    <div className="field">
-                      <label className="label">Category <span className="label-req">*</span></label>
-                      <div className="select-wrap">
-                        <select
-                          className={`select ${errors.category ? "error" : ""}`}
-                          value={category}
-                          onChange={e => { setCategory(e.target.value); setErrors(p => ({ ...p, category: null })); }}
-                        >
-                          <option value="">Select category…</option>
-                          {CATEGORIES.map(c => <option key={c}>{c}</option>)}
-                        </select>
-                        <span className="select-arrow">▾</span>
-                      </div>
-                      {errors.category && <span className="field-error">⚠ {errors.category}</span>}
-                    </div>
-                    <div className="field">
-                      <label className="label">Brand</label>
-                      <div className="select-wrap">
-                        <select className="select" value={brand} onChange={e => setBrand(e.target.value)}>
-                          <option value="">Select brand…</option>
-                          {BRANDS.map(b => <option key={b}>{b}</option>)}
-                        </select>
-                        <span className="select-arrow">▾</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Barcode */}
-                  <div className="field">
-                    <label className="label">Barcode / UPC
-                      <span className="label-hint">— EAN-13, UPC-A, QR</span>
-                    </label>
-                    <div className="input-prefix-wrap">
-                      <span className="input-prefix">▮</span>
-                      <input className="input" placeholder="Scan or enter barcode" value={barcode} onChange={e => setBarcode(e.target.value)}
-                        style={{ fontFamily: "'Geist Mono', monospace", fontSize: 13 }} />
-                    </div>
-                  </div>
-
-                  {/* Description */}
-                  <div className="field">
-                    <label className="label">Description</label>
-                    <textarea
-                      className="textarea"
-                      placeholder="Describe the product — materials, dimensions, key features…"
-                      value={description}
-                      onChange={e => setDescription(e.target.value)}
-                      rows={3}
-                    />
-                  </div>
-
-                  {/* Tags */}
-                  <div className="field">
-                    <label className="label">Tags
-                      <span className="label-hint">— press Enter to add</span>
-                    </label>
-                    <div className="tag-input-wrap" onClick={() => document.getElementById("tag-input-field").focus()}>
-                      {tags.map(t => (
-                        <span className="tag-chip" key={t}>
-                          {t}
-                          <button className="tag-remove" onClick={() => setTags(tt => tt.filter(x => x !== t))}>×</button>
-                        </span>
-                      ))}
-                      <input
-                        id="tag-input-field"
-                        className="tag-input-field"
-                        placeholder={tags.length === 0 ? "wireless, audio, bestseller…" : ""}
-                        value={tagInput}
-                        onChange={e => setTagInput(e.target.value)}
-                        onKeyDown={handleTagKey}
-                      />
-                    </div>
-                  </div>
-
-                </div>
-              </div>
-
-              {/* ── Pricing ── */}
-              <div className="card" style={{ animationDelay: "100ms" }}>
-                <div className="card-header">
-                  <div className="card-header-icon" style={{ background: "var(--greenbg)", border: "1px solid var(--greenbr)" }}>
-                    <span style={{ fontSize: 16 }}>💰</span>
-                  </div>
-                  <div>
-                    <div className="card-title">Pricing</div>
-                    <div className="card-sub">Selling price, cost &amp; tax</div>
-                  </div>
-                </div>
-                <div className="card-body">
-
-                  <div className="field-row field-row-3">
-                    <div className="field">
-                      <label className="label">Selling Price <span className="label-req">*</span></label>
-                      <div className="input-prefix-wrap">
-                        <span className="input-prefix">$</span>
-                        <input
-                          className={`input ${errors.price ? "error" : ""}`}
-                          placeholder="0.00" type="number" min="0" step="0.01"
-                          value={price} onChange={e => { setPrice(e.target.value); setErrors(p => ({ ...p, price: null })); }}
-                          style={{ fontFamily: "'Geist Mono', monospace" }}
-                        />
-                      </div>
-                      {errors.price && <span className="field-error">⚠ {errors.price}</span>}
-                    </div>
-                    <div className="field">
-                      <label className="label">Cost Price</label>
-                      <div className="input-prefix-wrap">
-                        <span className="input-prefix">$</span>
-                        <input
-                          className="input" placeholder="0.00" type="number" min="0" step="0.01"
-                          value={costPrice} onChange={e => setCostPrice(e.target.value)}
-                          style={{ fontFamily: "'Geist Mono', monospace" }}
-                        />
-                      </div>
-                    </div>
-                    <div className="field">
-                      <label className="label">Compare-at</label>
-                      <div className="input-prefix-wrap">
-                        <span className="input-prefix">$</span>
-                        <input
-                          className="input" placeholder="0.00" type="number" min="0" step="0.01"
-                          value={compareAt} onChange={e => setCompareAt(e.target.value)}
-                          style={{ fontFamily: "'Geist Mono', monospace" }}
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Margin preview */}
-                  {margin !== null && (
-                    <div style={{
-                      display: "flex", alignItems: "center", gap: 10, padding: "10px 14px",
-                      background: parseFloat(margin) > 30 ? "var(--greenbg)" : parseFloat(margin) > 10 ? "var(--goldbg)" : "var(--redbg)",
-                      border: `1px solid ${parseFloat(margin) > 30 ? "var(--greenbr)" : parseFloat(margin) > 10 ? "var(--goldbr)" : "var(--redbr)"}`,
-                      borderRadius: "var(--r-sm)",
-                    }}>
-                      <span style={{ fontSize: 12, fontWeight: 700, color: parseFloat(margin) > 30 ? "var(--green)" : parseFloat(margin) > 10 ? "var(--gold)" : "var(--red)" }}>
-                        Margin
-                      </span>
-                      <span style={{ fontFamily: "'Geist Mono', monospace", fontSize: 20, fontWeight: 700,
-                        color: parseFloat(margin) > 30 ? "var(--green)" : parseFloat(margin) > 10 ? "var(--gold)" : "var(--red)" }}>
-                        {margin}%
-                      </span>
-                      <span style={{ fontSize: 11, color: "var(--ink40)", marginLeft: "auto" }}>
-                        ${price && costPrice ? (parseFloat(price) - parseFloat(costPrice)).toFixed(2) : "0.00"} profit per unit
-                      </span>
-                    </div>
-                  )}
-
-                  <div className="field-row field-row-2">
-                    <div className="field">
-                      <label className="label">Tax Rate</label>
-                      <div className="select-wrap">
-                        <select className="select" value={taxRate} onChange={e => setTaxRate(e.target.value)}>
-                          {TAX_RATES.map(r => <option key={r}>{r}</option>)}
-                        </select>
-                        <span className="select-arrow">▾</span>
-                      </div>
-                    </div>
-                    <div className="field">
-                      <label className="label" style={{ opacity: 0 }}>_</label>
-                      <div className="toggle-row" style={{ paddingTop: 8 }}>
-                        <div className="toggle-info">
-                          <div className="toggle-title" style={{ fontSize: 12 }}>Tax inclusive</div>
-                        </div>
-                        <label className="toggle">
-                          <input type="checkbox" checked={taxable} onChange={e => setTaxable(e.target.checked)} />
-                          <div className="toggle-track"><div className="toggle-thumb" /></div>
-                        </label>
-                      </div>
-                    </div>
-                  </div>
-
-                </div>
-              </div>
-
-              {/* ── Inventory ── */}
-              <div className="card" style={{ animationDelay: "130ms" }}>
-                <div className="card-header">
-                  <div className="card-header-icon" style={{ background: "var(--bluebg)", border: "1px solid var(--bluebr)" }}>
-                    <span style={{ fontSize: 16 }}>🏭</span>
-                  </div>
-                  <div>
-                    <div className="card-title">Inventory</div>
-                    <div className="card-sub">Stock levels, units &amp; supplier</div>
-                  </div>
-                </div>
-                <div className="card-body">
-
-                  <div className="toggle-row">
-                    <div className="toggle-info">
-                      <div className="toggle-title">Track inventory</div>
-                      <div className="toggle-desc">Automatically deduct stock on every sale</div>
-                    </div>
-                    <label className="toggle">
-                      <input type="checkbox" checked={trackStock} onChange={e => setTrackStock(e.target.checked)} />
-                      <div className="toggle-track"><div className="toggle-thumb" /></div>
-                    </label>
-                  </div>
-
-                  {trackStock && (
-                    <>
-                      <div className="hdivider" />
-                      <div className="field-row field-row-3">
-                        <div className="field">
-                          <label className="label">Opening Stock</label>
-                          <div className="input-suffix-wrap">
-                            <input className="input" placeholder="0" type="number" min="0"
-                              value={stock} onChange={e => setStock(e.target.value)}
-                              style={{ fontFamily: "'Geist Mono', monospace" }} />
-                            <span className="input-suffix">{unit}</span>
-                          </div>
-                        </div>
-                        <div className="field">
-                          <label className="label">Reorder Point</label>
-                          <div className="input-suffix-wrap">
-                            <input className="input" placeholder="0" type="number" min="0"
-                              value={minStock} onChange={e => setMinStock(e.target.value)}
-                              style={{ fontFamily: "'Geist Mono', monospace" }} />
-                            <span className="input-suffix">{unit}</span>
-                          </div>
-                        </div>
-                        <div className="field">
-                          <label className="label">Unit</label>
-                          <div className="select-wrap">
-                            <select className="select" value={unit} onChange={e => setUnit(e.target.value)}>
-                              {UNITS.map(u => <option key={u}>{u}</option>)}
-                            </select>
-                            <span className="select-arrow">▾</span>
-                          </div>
-                        </div>
-                      </div>
-                    </>
-                  )}
-
-                  <div className="field-row field-row-2">
-                    <div className="field">
-                      <label className="label">Supplier</label>
-                      <div className="select-wrap">
-                        <select className="select" value={supplier} onChange={e => setSupplier(e.target.value)}>
-                          <option value="">Select supplier…</option>
-                          {SUPPLIERS.map(s => <option key={s}>{s}</option>)}
-                        </select>
-                        <span className="select-arrow">▾</span>
-                      </div>
-                    </div>
-                    <div className="field">
-                      <label className="label">Storage Location</label>
-                      <input className="input" placeholder="e.g. Shelf B-3, Warehouse 1"
-                        value={location} onChange={e => setLocation(e.target.value)} />
-                    </div>
-                  </div>
-
-                  <div className="toggle-row">
-                    <div className="toggle-info">
-                      <div className="toggle-title">Allow negative stock</div>
-                      <div className="toggle-desc">Permit sales even when stock reaches zero</div>
-                    </div>
-                    <label className="toggle">
-                      <input type="checkbox" checked={allowNeg} onChange={e => setAllowNeg(e.target.checked)} />
-                      <div className="toggle-track"><div className="toggle-thumb" /></div>
-                    </label>
-                  </div>
-
-                </div>
-              </div>
-
-              {/* ── Variants ── */}
-              <div className="card" style={{ animationDelay: "155ms" }}>
-                <div className="card-header">
-                  <div className="card-header-icon" style={{ background: "var(--purplebg)", border: "1px solid var(--purplebr)" }}>
-                    <span style={{ fontSize: 16 }}>⬡</span>
-                  </div>
-                  <div style={{ flex: 1 }}>
-                    <div className="card-title">Variants</div>
-                    <div className="card-sub">Size, colour, configuration options</div>
-                  </div>
-                  <label className="toggle" style={{ marginRight: 4 }}>
-                    <input type="checkbox" checked={hasVariants} onChange={e => setHasVariants(e.target.checked)} />
-                    <div className="toggle-track"><div className="toggle-thumb" /></div>
-                  </label>
-                </div>
-
-                {hasVariants && (
-                  <div className="card-body" style={{ paddingTop: 16 }}>
-                    <div className="variant-table">
-                      <div className="variant-head">
-                        <span>Variant Name</span><span>SKU</span><span>Price</span><span>Stock</span><span></span>
-                      </div>
-                      {variants.map(v => (
-                        <div className="variant-row" key={v.id}>
-                          <input className="variant-input" placeholder="e.g. Red / L" value={v.name}
-                            onChange={e => updateVariant(v.id, "name", e.target.value)} />
-                          <input className="variant-input mono" placeholder="SKU" value={v.sku}
-                            onChange={e => updateVariant(v.id, "sku", e.target.value)} />
-                          <input className="variant-input mono" placeholder="0.00" type="number" value={v.price}
-                            onChange={e => updateVariant(v.id, "price", e.target.value)} />
-                          <input className="variant-input mono" placeholder="0" type="number" value={v.stock}
-                            onChange={e => updateVariant(v.id, "stock", e.target.value)} />
-                          <button className="variant-del" onClick={() => delVariant(v.id)}>×</button>
-                        </div>
-                      ))}
-                    </div>
-                    <button className="add-variant-btn" onClick={addVariant}>
-                      <span style={{ fontSize: 16, lineHeight: 1 }}>+</span> Add Variant
-                    </button>
-                  </div>
-                )}
-              </div>
-
-              {/* ── Media ── */}
-              <div className="card" style={{ animationDelay: "175ms" }}>
-                <div className="card-header">
-                  <div className="card-header-icon" style={{ background: "var(--brownbg)", border: "1px solid rgba(122,92,30,.2)" }}>
-                    <span style={{ fontSize: 16 }}>🖼</span>
-                  </div>
-                  <div>
-                    <div className="card-title">Product Images</div>
-                    <div className="card-sub">Upload up to 6 images · First image is the cover</div>
-                  </div>
-                </div>
-                <div className="card-body">
-
-                  {images.length < 6 && (
-                    <div
-                      className={`upload-zone ${dragOver ? "drag-over" : ""}`}
-                      onDragOver={e => { e.preventDefault(); setDragOver(true); }}
-                      onDragLeave={() => setDragOver(false)}
-                      onDrop={handleDrop}
-                      onClick={() => fileInputRef.current.click()}
-                    >
-                      <div className="upload-ico">📸</div>
-                      <div className="upload-title">Drop images here or click to browse</div>
-                      <div className="upload-sub">
-                        Recommended: 800×800px or larger · White background preferred
-                      </div>
-                      <div className="upload-types">
-                        {["JPG", "PNG", "WEBP", "AVIF"].map(t => (
-                          <span className="upload-type-tag" key={t}>{t}</span>
-                        ))}
-                      </div>
-                      <input ref={fileInputRef} type="file" accept="image/*" multiple hidden
-                        onChange={e => handleFiles(e.target.files)} />
-                    </div>
-                  )}
-
-                  {images.length > 0 && (
-                    <div className="img-preview-grid">
-                      {images.map((img, i) => (
-                        <div className="img-preview-cell" key={i}>
-                          <img src={img.url} alt={img.name} />
-                          {i === 0 && (
-                            <div style={{
-                              position: "absolute", bottom: 5, left: 5,
-                              padding: "2px 7px", borderRadius: 20,
-                              background: "rgba(27,23,19,.7)", backdropFilter: "blur(4px)",
-                              fontSize: 9, fontWeight: 700, color: "var(--goldl)", letterSpacing: 1,
-                            }}>COVER</div>
-                          )}
-                          <button className="img-remove" onClick={() => setImages(prev => prev.filter((_, ii) => ii !== i))}>×</button>
-                        </div>
-                      ))}
-                      {images.length < 6 && (
-                        <div className="img-add-cell" onClick={() => fileInputRef.current.click()}>+</div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              </div>
-
-            </div>
-
-            {/* RIGHT COLUMN — Summary + Status */}
-            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-
-              {/* Summary */}
-              <div className="summary-card">
-                <div className="summary-top">
-                  <div className="summary-title">Product Preview</div>
-                  <div className="summary-sub">{completedCount} / {steps.length} sections complete</div>
-                </div>
-                <div className="summary-body">
-
-                  {/* Preview image */}
-                  <div className="summary-preview">
-                    {images.length > 0
-                      ? <img src={images[0].url} alt="cover" />
-                      : (
-                        <div className="summary-preview-empty">
-                          <span style={{ fontSize: 36 }}>📦</span>
-                          <span className="summary-preview-hint">No image yet</span>
-                        </div>
-                      )
-                    }
-                  </div>
-
-                  <div>
-                    <div className="summary-name">{name || <span style={{ color: "var(--ink20)", fontWeight: 400 }}>Product name…</span>}</div>
-                    <div className="summary-sku">{displaySku || "—"}</div>
-                    <div className="summary-cat">{[brand, category].filter(Boolean).join(" · ") || <span style={{ color: "var(--ink20)" }}>Category…</span>}</div>
-                  </div>
-
-                  <div className="summary-divider" />
-
-                  <div>
-                    <div className="summary-price-big">{price ? `$${parseFloat(price).toFixed(2)}` : "—"}</div>
-                    {compareAt && parseFloat(compareAt) > parseFloat(price || 0) && (
-                      <div style={{ fontFamily: "'Geist Mono', monospace", fontSize: 12, color: "var(--ink30)", textDecoration: "line-through", marginTop: 2 }}>
-                        ${parseFloat(compareAt).toFixed(2)}
-                      </div>
-                    )}
-                  </div>
-
-                  <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
-                    <div className="summary-row">
-                      <span className="summary-row-label">Cost price</span>
-                      <span className="summary-row-value">{costPrice ? `$${parseFloat(costPrice).toFixed(2)}` : "—"}</span>
-                    </div>
-                    <div className="summary-row">
-                      <span className="summary-row-label">Margin</span>
-                      <span className="summary-row-value" style={{ color: margin ? (parseFloat(margin) > 20 ? "var(--green)" : "var(--gold)") : "var(--ink)" }}>
-                        {margin ? `${margin}%` : "—"}
-                      </span>
-                    </div>
-                    <div className="summary-row">
-                      <span className="summary-row-label">Opening stock</span>
-                      <span className="summary-row-value">{stock ? `${stock} ${unit}` : "—"}</span>
-                    </div>
-                    <div className="summary-row">
-                      <span className="summary-row-label">Tax</span>
-                      <span className="summary-row-value">{taxable ? taxRate : "Exempt"}</span>
-                    </div>
-                  </div>
-
-                  <div className="summary-divider" />
-
-                  {/* Completeness */}
-                  <div>
-                    <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", color: "var(--ink40)", marginBottom: 10 }}>
-                      Completeness
-                    </div>
-                    {/* Progress bar */}
-                    <div style={{ height: 4, background: "var(--ink10)", borderRadius: 2, overflow: "hidden", marginBottom: 12 }}>
-                      <div style={{
-                        height: "100%", borderRadius: 2,
-                        width: `${(completedCount / steps.length) * 100}%`,
-                        background: "linear-gradient(90deg, var(--gold), var(--goldl))",
-                        transition: "width .5s cubic-bezier(.16,1,.3,1)",
-                      }} />
-                    </div>
-                    <div className="progress-steps">
-                      {steps.map((s, i) => (
-                        <div className="progress-step" key={i}>
-                          <div className={`pstep-dot ${s.done ? "done" : "empty"}`}>
-                            {s.done ? "✓" : i + 1}
-                          </div>
-                          <span className={`pstep-label ${s.done ? "done" : "empty"}`}>{s.label}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="summary-divider" />
-
-                  <button className="submit-btn" onClick={handleSubmit} disabled={!name || !price || !category}>
-                    <span>✦</span> Publish Product
-                  </button>
-                  <button className="draft-btn" onClick={handleDraft}>Save as Draft</button>
-                </div>
-              </div>
-
-              {/* Status */}
-              <div className="card" style={{ animationDelay: "90ms" }}>
-                <div className="card-header">
-                  <div className="card-header-icon" style={{ background: "var(--greenbg)", border: "1px solid var(--greenbr)" }}>
-                    <span style={{ fontSize: 16 }}>⚡</span>
-                  </div>
-                  <div>
-                    <div className="card-title">Visibility &amp; Status</div>
-                    <div className="card-sub">Control how this product appears</div>
-                  </div>
-                </div>
-                <div className="card-body">
-                  <div className="status-grid">
-                    {[
-                      { val: "active",   label: "Active",   desc: "Live in POS", color: "var(--green)", bg: "var(--greenbg)", dot: "#3D8A65" },
-                      { val: "draft",    label: "Draft",    desc: "Hidden",      color: "var(--gold)",  bg: "var(--goldbg)",  dot: "#D4A83C" },
-                      { val: "archived", label: "Archived", desc: "Removed",     color: "var(--ink40)", bg: "var(--warm2)",   dot: "#9E9080" },
-                    ].map(s => (
-                      <div
-                        key={s.val}
-                        className={`status-opt ${status === s.val ? "selected" : ""}`}
-                        style={{ "--status-c": s.color, "--status-bg": s.bg }}
-                        onClick={() => setStatus(s.val)}
-                      >
-                        <div className="status-dot-lg" style={{ background: s.dot, boxShadow: status === s.val ? `0 0 8px ${s.dot}` : "none" }} />
-                        <div className="status-lbl">{s.label}</div>
-                        <div className="status-desc">{s.desc}</div>
-                      </div>
-                    ))}
-                  </div>
-
-                  <div className="hdivider" style={{ margin: "4px 0" }} />
-
-                  <div className="toggle-row">
-                    <div className="toggle-info">
-                      <div className="toggle-title">Featured product</div>
-                      <div className="toggle-desc">Highlight in POS &amp; reports</div>
-                    </div>
-                    <label className="toggle">
-                      <input type="checkbox" checked={featured} onChange={e => setFeatured(e.target.checked)} />
-                      <div className="toggle-track"><div className="toggle-thumb" /></div>
-                    </label>
-                  </div>
-                </div>
-              </div>
-
-            </div>
-          </div>
         </div>
-
-        {/* TOAST */}
-        <div className={`toast ${toast.show ? "show" : ""}`}>
-          <span className="toast-icon">✦</span>
-          <span className="toast-msg">{toast.msg}</span>
-          {toast.sub && <span className="toast-sub">· {toast.sub}</span>}
-        </div>
-
       </div>
     </>
   );
