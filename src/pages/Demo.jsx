@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { SupplierSelectionModal } from "./common/SupplierSelectionModal";
+import { SupplierSelectionModal } from "./suppliers/SupplierSelectionModal";
 
 export default function Demo() {
   const [pickerOpen, setPickerOpen] = useState(false);
