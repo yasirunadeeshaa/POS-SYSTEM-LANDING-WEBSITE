@@ -13,7 +13,7 @@ import ComparisonSection from "../pages/main/Comparisonsection";
 import Login from "../pages/auth/Login";
 
 //dashboard
-import Dashboard from "../pages/dashboards/PosDashboard";
+import Dashboard from "../pages/dashboards/AdminDashboard";
 
 //Inventory
 import Quotation from "../pages/sales/Quotation";
